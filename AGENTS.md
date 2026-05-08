@@ -23,6 +23,9 @@ Given a user’s app or website, Launch Architect should produce:
 
 The output should be practical enough that a non-senior technical user can follow it without hunting through ten different docs pages.
 
+## Github App
+This project is a Github App, meaning whoever uses it should be able to copy a .env file and enter an API key and provider for usage
+
 ## Target User
 
 Primary users:
