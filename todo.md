@@ -32,29 +32,29 @@ Build the first useful version of Launch Architect: a practical production deplo
 
 ## 0. Scaffolding
 
-- [ ] Choose the V0 app framework and runtime.
-- [ ] Write down why the framework fits a GitHub App style planner with repo inspection, generated outputs, and simple local setup.
-- [ ] Create the initial app structure.
-- [ ] Add separate folders or modules for intake, repo analysis, recommendation logic, launch plan generation, checklist generation, risk review, cost estimates, exports, and shared UI.
-- [ ] Add linting, formatting, and type checking.
-- [ ] Add commands for `dev`, `build`, `lint`, `typecheck`, and `test`.
-- [ ] Add a basic test setup.
-- [ ] Add sample tests for pure recommendation, cost estimate, environment variable detection, and risk review logic.
-- [ ] Add local environment configuration with `.env.example`.
-- [ ] Include placeholders for GitHub App credentials, AI provider name, AI API key, app URL, auth secret if needed, and any persistence URL if used.
-- [ ] Add a README with local setup instructions.
-- [ ] Document the exact command sequence for installing dependencies, creating `.env`, starting the app, and running checks.
-- [ ] Define core data models for project intake, repo analysis, recommendations, launch plans, risks, costs, and checklist items.
-- [ ] Include source metadata in data models: `detected`, `inferred`, `user_provided`, `defaulted`, or `unknown`.
-- [ ] Include confidence metadata in analysis facts: `high`, `medium`, or `low`.
-- [ ] Include blocking severity on risks: `high`, `medium`, `low`, or `info`.
-- [ ] Create placeholder routes or screens for intake, analysis, recommendations, launch plan, and export.
-- [ ] Add shared UI components for buttons, forms, panels, alerts, tables, tabs, copy/export actions, and status indicators.
-- [ ] Add a simple persistence approach for V0 draft state.
-- [ ] Decide whether V0 draft state lives in memory, local storage, session storage, or a lightweight database.
-- [ ] Add a seed/demo project fixture so the planner can be tested without fetching a live repo.
-- [ ] Add basic error boundaries or error states for repo fetch failure, invalid URLs, AI provider errors, and missing environment variables.
-- [ ] Add a deterministic fallback path when AI generation is unavailable: show detected facts, questions, and template-based recommendations.
+- [x] Choose the V0 app framework and runtime.
+- [x] Write down why the framework fits a GitHub App style planner with repo inspection, generated outputs, and simple local setup.
+- [x] Create the initial app structure.
+- [x] Add separate folders or modules for intake, repo analysis, recommendation logic, launch plan generation, checklist generation, risk review, cost estimates, exports, and shared UI.
+- [x] Add linting, formatting, and type checking.
+- [x] Add commands for `dev`, `build`, `lint`, `typecheck`, and `test`.
+- [x] Add a basic test setup.
+- [x] Add sample tests for pure recommendation, cost estimate, environment variable detection, and risk review logic.
+- [x] Add local environment configuration with `.env.example`.
+- [x] Include placeholders for GitHub App credentials, AI provider name, AI API key, app URL, auth secret if needed, and any persistence URL if used.
+- [x] Add a README with local setup instructions.
+- [x] Document the exact command sequence for installing dependencies, creating `.env`, starting the app, and running checks.
+- [x] Define core data models for project intake, repo analysis, recommendations, launch plans, risks, costs, and checklist items.
+- [x] Include source metadata in data models: `detected`, `inferred`, `user_provided`, `defaulted`, or `unknown`.
+- [x] Include confidence metadata in analysis facts: `high`, `medium`, or `low`.
+- [x] Include blocking severity on risks: `high`, `medium`, `low`, or `info`.
+- [x] Create placeholder routes or screens for intake, analysis, recommendations, launch plan, and export.
+- [x] Add shared UI components for buttons, forms, panels, alerts, tables, tabs, copy/export actions, and status indicators.
+- [x] Add a simple persistence approach for V0 draft state.
+- [x] Decide whether V0 draft state lives in memory, local storage, session storage, or a lightweight database.
+- [x] Add a seed/demo project fixture so the planner can be tested without fetching a live repo.
+- [x] Add basic error boundaries or error states for repo fetch failure, invalid URLs, AI provider errors, and missing environment variables.
+- [x] Add a deterministic fallback path when AI generation is unavailable: show detected facts, questions, and template-based recommendations.
 
 ## 1. Project Intake
 
