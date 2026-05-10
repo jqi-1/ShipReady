@@ -14,13 +14,7 @@ export function loadPlannerDraft(): PlannerDraft | null {
 }
 
 export function savePlannerDraft(draft: PlannerDraft) {
-  window.localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({
-      ...draft,
-      updatedAt: new Date().toISOString()
-    })
-  );
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
 }
 
 export function clearPlannerDraft() {

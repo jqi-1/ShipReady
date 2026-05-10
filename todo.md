@@ -29,6 +29,7 @@ Build the first useful version of Launch Architect: a practical production deplo
 - [ ] Prefer "do this next" guidance over broad education.
 - [ ] Ensure every recommendation includes why it fits this repo and this user's stated priorities.
 - [ ] Ensure uncertain findings are clearly marked as uncertain instead of presented as facts.
+- [ ] Plan for an eventual backend layer after V0, starting with Next.js server routes before considering a separate backend service.
 
 ## 0. Scaffolding
 
@@ -414,6 +415,9 @@ Build the first useful version of Launch Architect: a practical production deplo
 - [ ] Avoid storing user repo contents longer than needed for V0 unless persistence is intentionally added.
 - [ ] Redact secrets before logging analysis output.
 - [ ] Add setup notes for rotating GitHub App secrets and AI provider keys.
+- [ ] Add backend route handlers for GitHub App authentication, repo inspection, webhook handling, and AI-backed generation.
+- [ ] Keep GitHub private keys, webhook secrets, and AI API keys out of client-side code.
+- [ ] Use Next.js server routes for the first backend layer unless product requirements clearly demand a separate service.
 
 ## 13. UI Requirements
 
@@ -471,6 +475,7 @@ Build the first useful version of Launch Architect: a practical production deplo
 ## Explicitly Out of Scope for V0
 
 - [ ] One-click deployment workflows.
+- [ ] A separate standalone backend service.
 - [ ] Provider API integrations.
 - [ ] DNS verification automation.
 - [ ] Stripe webhook setup automation.

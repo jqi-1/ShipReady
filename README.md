@@ -42,3 +42,9 @@ npm run build
 - Draft planner state is stored in browser `localStorage`.
 - GitHub App credentials are scaffolded for configuration, but the full installation flow is not implemented yet.
 - Provider account creation, DNS automation, one-click deployment, saved projects, team workflows, and production infrastructure automation are intentionally out of scope for V0.
+
+## Backend Direction
+
+V0 can run without a dedicated backend because it uses local planner state and deterministic fallback output. A backend layer should be added after the planner workflow is useful enough to justify live integrations.
+
+Start with Next.js server routes inside this app before considering a separate backend service. The eventual backend should protect GitHub App credentials and AI API keys, inspect repositories server-side, handle GitHub webhooks, generate plans from provider calls, and later support saved projects, team sharing, launch history, and checklist progress.

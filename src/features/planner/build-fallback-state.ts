@@ -6,28 +6,152 @@ import { generateLaunchPlan } from "@/features/launch-plan/generate-launch-plan"
 import { buildRecommendationOptions } from "@/features/recommendations/recommend-stack";
 import { reviewRisks } from "@/features/risk-review/review-risks";
 import { demoProjectAnalysis, demoProjectIntake } from "@/fixtures/demo-project";
+import type { ProjectIntakeField } from "@/types/planner";
+
+const INTAKE_FIELDS: ProjectIntakeField[] = [
+  "repoUrl",
+  "appType",
+  "traffic",
+  "budget",
+  "comfort",
+  "priority",
+  "needsBackend",
+  "needsAuth",
+  "needsDatabase",
+  "needsFileUploads",
+  "needsEmail",
+  "needsPayments",
+  "needsBackgroundJobs",
+  "needsRealtime",
+  "needsCustomDomain",
+  "storesPersonalData",
+  "needsSeo",
+  "compliance",
+  "deploymentStatus",
+  "domainStatus",
+  "audience",
+  "willingToCreateProviderAccounts"
+];
 
 export function buildFallbackPlannerState(): PlannerDraft {
-  const recommendations = buildRecommendationOptions(
-    demoProjectAnalysis,
-    demoProjectIntake
-  );
-  const selectedRecommendation = recommendations[0];
-  const risks = reviewRisks(demoProjectAnalysis);
+  return buildPlannerDraft(demoProjectAnalysis, demoProjectIntake);
+}
+
+export function buildBlankProjectIntake(
+  repoUrl = "",
+  repoSource: PlannerDraft["intake"]["source"] = "defaulted"
+): PlannerDraft["intake"] {
+  return {
+    repoUrl,
+    appType: "not_sure",
+    traffic: "prototype",
+    budget: "0_20",
+    comfort: "beginner",
+    priority: "simplicity",
+    needsBackend: "not_sure",
+    needsAuth: "not_sure",
+    needsDatabase: "not_sure",
+    needsFileUploads: "not_sure",
+    needsEmail: "not_sure",
+    needsPayments: "not_sure",
+    needsBackgroundJobs: "not_sure",
+    needsRealtime: "not_sure",
+    needsCustomDomain: "not_sure",
+    storesPersonalData: "not_sure",
+    needsSeo: "not_sure",
+    compliance: "not_sure",
+    deploymentStatus: "not_deployed",
+    domainStatus: "not_sure",
+    audience: "not_sure",
+    willingToCreateProviderAccounts: "not_sure",
+    source: repoSource,
+    sources: Object.fromEntries(
+      INTAKE_FIELDS.map((field) => [
+        field,
+        field === "repoUrl" ? repoSource : "defaulted"
+      ])
+    ) as PlannerDraft["intake"]["sources"]
+  };
+}
+
+export function buildIntakeOnlyAnalysis(input: {
+  repoUrl?: string;
+  projectName: string;
+  projectSource?: PlannerDraft["analysis"]["projectName"]["source"];
+}): PlannerDraft["analysis"] {
+  const projectSource = input.projectSource ?? "defaulted";
+
+  return {
+    projectName: {
+      label: "Project",
+      value: input.projectName,
+      source: projectSource,
+      confidence: projectSource === "user_provided" ? "high" : "low",
+      evidence: [
+        {
+          path: input.repoUrl ? "repo URL input" : "manual intake",
+          detail: input.repoUrl
+            ? "Extracted from the user-provided GitHub URL"
+            : "Repo inspection has not run for this manual project"
+        }
+      ]
+    },
+    repoUrl: input.repoUrl,
+    appRoot: {
+      label: "App root",
+      value: ".",
+      source: "defaulted",
+      confidence: "low",
+      evidence: [
+        {
+          path: "intake",
+          detail: "Defaulted until Phase 2 repo inspection identifies the app root"
+        }
+      ]
+    },
+    envVars: [],
+    services: [],
+    facts: [
+      {
+        label: "Repo inspection status",
+        value:
+          "Live repo fetching is out of scope for Phase 1. This state uses intake answers and defaulted analysis placeholders.",
+        source: "defaulted",
+        confidence: "high"
+      }
+    ]
+  };
+}
+
+export function buildPlannerDraft(
+  analysis: PlannerDraft["analysis"],
+  intake: PlannerDraft["intake"],
+  selectedRecommendationId?: string,
+  updatedAt?: string
+): PlannerDraft {
+  const draftUpdatedAt = updatedAt ?? new Date().toISOString();
+  const recommendations = buildRecommendationOptions(analysis, intake);
+  const selectedRecommendation =
+    recommendations.find(
+      (recommendation) => recommendation.id === selectedRecommendationId
+    ) ?? recommendations[0];
+  const risks = reviewRisks(analysis);
   const costs = estimateMonthlyCosts(selectedRecommendation);
-  const checklist = generateChecklist(demoProjectAnalysis, selectedRecommendation, risks);
+  const checklist = generateChecklist(analysis, selectedRecommendation, risks);
   const launchPlan = generateLaunchPlan({
-    analysis: demoProjectAnalysis,
+    analysis,
+    intake,
     recommendation: selectedRecommendation,
     alternatives: recommendations.slice(1),
     risks,
     costs,
-    checklist
+    checklist,
+    generatedAt: draftUpdatedAt
   });
 
   return {
-    intake: demoProjectIntake,
-    analysis: demoProjectAnalysis,
+    intake,
+    analysis,
     recommendations,
     selectedRecommendationId: selectedRecommendation.id,
     risks,
@@ -37,6 +161,6 @@ export function buildFallbackPlannerState(): PlannerDraft {
       ...launchPlan,
       markdown: exportLaunchPlanMarkdown(launchPlan)
     },
-    updatedAt: new Date().toISOString()
+    updatedAt: draftUpdatedAt
   };
 }

@@ -42,6 +42,30 @@ export type TechnicalComfort = "beginner" | "comfortable" | "developer";
 
 export type ProductPriority = "speed" | "cost" | "scalability" | "simplicity";
 
+export type ComplianceNeed =
+  | "none"
+  | "gdpr"
+  | "hipaa"
+  | "soc2"
+  | "data_residency"
+  | "not_sure";
+
+export type DeploymentStatus =
+  | "not_deployed"
+  | "preview_deployed"
+  | "production_deployed"
+  | "not_sure";
+
+export type DomainStatus =
+  | "owns_domain"
+  | "needs_domain"
+  | "using_platform_subdomain"
+  | "not_sure";
+
+export type AppAudience = "public_users" | "internal_users" | "both" | "not_sure";
+
+export type ProviderAccountWillingness = "yes" | "no" | "not_sure";
+
 export type ServiceCategory =
   | "database"
   | "auth"
@@ -55,6 +79,32 @@ export type ServiceCategory =
   | "docker"
   | "ci_cd"
   | "deployment";
+
+export type ProjectIntakeField =
+  | "repoUrl"
+  | "appType"
+  | "traffic"
+  | "budget"
+  | "comfort"
+  | "priority"
+  | "needsBackend"
+  | "needsAuth"
+  | "needsDatabase"
+  | "needsFileUploads"
+  | "needsEmail"
+  | "needsPayments"
+  | "needsBackgroundJobs"
+  | "needsRealtime"
+  | "needsCustomDomain"
+  | "storesPersonalData"
+  | "needsSeo"
+  | "compliance"
+  | "deploymentStatus"
+  | "domainStatus"
+  | "audience"
+  | "willingToCreateProviderAccounts";
+
+export type ProjectIntakeSources = Partial<Record<ProjectIntakeField, FactSource>>;
 
 export interface Evidence {
   path: string;
@@ -87,7 +137,13 @@ export interface ProjectIntake {
   needsCustomDomain: boolean | "not_sure";
   storesPersonalData: boolean | "not_sure";
   needsSeo: boolean | "not_sure";
+  compliance: ComplianceNeed;
+  deploymentStatus: DeploymentStatus;
+  domainStatus: DomainStatus;
+  audience: AppAudience;
+  willingToCreateProviderAccounts: ProviderAccountWillingness;
   source: FactSource;
+  sources: ProjectIntakeSources;
 }
 
 export interface EnvVariable {

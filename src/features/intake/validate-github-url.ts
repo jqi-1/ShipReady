@@ -4,20 +4,34 @@ export interface ParsedGitHubRepo {
   normalizedUrl: string;
 }
 
-const GITHUB_REPO_PATTERN =
-  /^(?:https?:\/\/)?github\.com\/([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?$/;
+const GITHUB_REPO_PART_PATTERN = /^[A-Za-z0-9_.-]+$/;
 
 export function parseGitHubRepoUrl(input: string): ParsedGitHubRepo | null {
   const trimmed = input.trim();
-  const match = trimmed.match(GITHUB_REPO_PATTERN);
 
-  if (!match) {
+  if (!trimmed) {
     return null;
   }
 
-  const [, owner, repo] = match;
+  const withoutProtocol = trimmed.replace(/^https?:\/\//i, "");
+  const repoPath = withoutProtocol.toLowerCase().startsWith("github.com/")
+    ? withoutProtocol.slice("github.com/".length)
+    : withoutProtocol;
+  const parts = repoPath.replace(/\/$/, "").split("/");
 
-  if (!owner || !repo) {
+  if (parts.length !== 2) {
+    return null;
+  }
+
+  const [owner, rawRepo] = parts;
+  const repo = rawRepo.endsWith(".git") ? rawRepo.slice(0, -4) : rawRepo;
+
+  if (
+    !owner ||
+    !repo ||
+    !GITHUB_REPO_PART_PATTERN.test(owner) ||
+    !GITHUB_REPO_PART_PATTERN.test(repo)
+  ) {
     return null;
   }
 

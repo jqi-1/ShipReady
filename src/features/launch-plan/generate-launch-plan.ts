@@ -2,6 +2,7 @@ import type {
   ChecklistSection,
   CostEstimate,
   LaunchPlan,
+  ProjectIntake,
   RecommendationOption,
   RepoAnalysis,
   Risk
@@ -9,13 +10,15 @@ import type {
 
 export function generateLaunchPlan(input: {
   analysis: RepoAnalysis;
+  intake?: ProjectIntake;
   recommendation: RecommendationOption;
   alternatives: RecommendationOption[];
   risks: Risk[];
   costs: CostEstimate;
   checklist: ChecklistSection[];
+  generatedAt?: string;
 }): LaunchPlan {
-  const generatedAt = new Date().toISOString();
+  const generatedAt = input.generatedAt ?? new Date().toISOString();
   const sections = [
     {
       title: "Project Summary",
@@ -34,7 +37,9 @@ export function generateLaunchPlan(input: {
     },
     {
       title: "Missing Information",
-      body: "Confirm launch traffic, budget, production domain, and any compliance or data residency requirements before treating the plan as final."
+      body: input.intake
+        ? renderMissingInformation(input.intake)
+        : "Confirm launch traffic, budget, production domain, and any compliance or data residency requirements before treating the plan as final."
     },
     {
       title: "Recommended Stack",
@@ -112,6 +117,100 @@ export function generateLaunchPlan(input: {
     sections,
     markdown
   };
+}
+
+function renderMissingInformation(intake: ProjectIntake) {
+  const missing: string[] = [];
+
+  if (intake.sources.appType !== "user_provided") {
+    missing.push("app type");
+  }
+
+  if (intake.sources.traffic !== "user_provided") {
+    missing.push("expected traffic");
+  }
+
+  if (intake.sources.budget !== "user_provided") {
+    missing.push("monthly budget");
+  }
+
+  if (intake.sources.audience !== "user_provided") {
+    missing.push("target audience");
+  }
+
+  if (intake.sources.comfort !== "user_provided") {
+    missing.push("technical comfort level");
+  }
+
+  if (intake.sources.priority !== "user_provided") {
+    missing.push("top priority");
+  }
+
+  if (intake.sources.deploymentStatus !== "user_provided") {
+    missing.push("current deployment status");
+  }
+
+  if (intake.sources.domainStatus !== "user_provided") {
+    missing.push("domain ownership");
+  }
+
+  if (intake.sources.compliance !== "user_provided") {
+    missing.push("compliance or data residency requirements");
+  }
+
+  if (intake.sources.storesPersonalData !== "user_provided") {
+    missing.push("whether personal data is stored");
+  }
+
+  if (intake.sources.needsSeo !== "user_provided") {
+    missing.push("whether SEO-visible pages exist");
+  }
+
+  if (intake.sources.willingToCreateProviderAccounts !== "user_provided") {
+    missing.push("willingness to create provider accounts");
+  }
+
+  if (intake.sources.needsBackend !== "user_provided") {
+    missing.push("whether a backend or API is needed");
+  }
+
+  if (intake.sources.needsAuth !== "user_provided") {
+    missing.push("whether authentication is needed");
+  }
+
+  if (intake.sources.needsDatabase !== "user_provided") {
+    missing.push("whether a database is needed");
+  }
+
+  if (intake.sources.needsFileUploads !== "user_provided") {
+    missing.push("whether file uploads are needed");
+  }
+
+  if (intake.sources.needsEmail !== "user_provided") {
+    missing.push("whether email sending is needed");
+  }
+
+  if (intake.sources.needsPayments !== "user_provided") {
+    missing.push("whether payments are needed");
+  }
+
+  if (intake.sources.needsBackgroundJobs !== "user_provided") {
+    missing.push("whether background jobs are needed");
+  }
+
+  if (intake.sources.needsRealtime !== "user_provided") {
+    missing.push("whether real-time features are needed");
+  }
+
+  if (intake.sources.needsCustomDomain !== "user_provided") {
+    missing.push("whether a custom domain is needed");
+  }
+
+  if (missing.length === 0) {
+    return "No critical intake questions are currently unanswered. Repo-derived facts still need live inspection before this plan is final.";
+  }
+
+  return `Confirm ${missing.join(", ")} before treating the plan as final.`;
 }
 
 function renderRecommendation(recommendation: RecommendationOption) {

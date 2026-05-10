@@ -26,6 +26,12 @@ The output should be practical enough that a non-senior technical user can follo
 ## Github App
 This project is a Github App, meaning whoever uses it should be able to copy a .env file and enter an API key and provider for usage
 
+## Backend Direction
+
+V0 does not need a separate backend service while the product is still a local planner with deterministic fallback output. The product should eventually add a backend layer, preferably as Next.js server routes in this app first.
+
+The eventual backend should keep GitHub App credentials and AI API keys server-side, fetch and inspect repos, handle GitHub webhooks, run AI-backed plan generation, and support saved projects, team sharing, launch history, and checklist progress. Do not introduce a separate Express/Nest/etc. service unless Next.js server routes are no longer enough.
+
 ## Target User
 
 Primary users:
@@ -458,6 +464,7 @@ Do not build one-click deployment in the first version unless the basic planner 
 After MVP, add:
 
 - Better repo parsing
+- Backend route handlers for repo inspection, GitHub App auth, AI requests, and webhooks
 - Pull request comments
 - Config file generation
 - Provider-specific setup guides

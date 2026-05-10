@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 
-interface AlertProps {
+interface AlertProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   tone?: "info" | "warn" | "danger";
 }
@@ -11,9 +11,12 @@ const tones = {
   danger: "border-red-200 bg-red-50 text-danger"
 };
 
-export function Alert({ children, tone = "info" }: AlertProps) {
+export function Alert({ children, tone = "info", className = "", ...props }: AlertProps) {
   return (
-    <div className={`rounded-md border px-4 py-3 text-sm font-medium ${tones[tone]}`}>
+    <div
+      className={`rounded-md border px-4 py-3 text-sm font-medium ${tones[tone]} ${className}`}
+      {...props}
+    >
       {children}
     </div>
   );

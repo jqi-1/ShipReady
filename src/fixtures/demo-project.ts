@@ -18,7 +18,36 @@ export const demoProjectIntake: ProjectIntake = {
   needsCustomDomain: true,
   storesPersonalData: true,
   needsSeo: true,
-  source: "defaulted"
+  compliance: "none",
+  deploymentStatus: "not_deployed",
+  domainStatus: "owns_domain",
+  audience: "public_users",
+  willingToCreateProviderAccounts: "yes",
+  source: "defaulted",
+  sources: {
+    repoUrl: "defaulted",
+    appType: "defaulted",
+    traffic: "defaulted",
+    budget: "defaulted",
+    comfort: "defaulted",
+    priority: "defaulted",
+    needsBackend: "defaulted",
+    needsAuth: "defaulted",
+    needsDatabase: "defaulted",
+    needsFileUploads: "defaulted",
+    needsEmail: "defaulted",
+    needsPayments: "defaulted",
+    needsBackgroundJobs: "defaulted",
+    needsRealtime: "defaulted",
+    needsCustomDomain: "defaulted",
+    storesPersonalData: "defaulted",
+    needsSeo: "defaulted",
+    compliance: "defaulted",
+    deploymentStatus: "defaulted",
+    domainStatus: "defaulted",
+    audience: "defaulted",
+    willingToCreateProviderAccounts: "defaulted"
+  }
 };
 
 export const demoProjectAnalysis: RepoAnalysis = {

@@ -6,16 +6,25 @@ export function buildRecommendationOptions(
   intake?: Partial<ProjectIntake>
 ): RecommendationOption[] {
   const framework = analysis.frontendFramework?.value.toLowerCase() ?? "";
-  const hasBackend =
+  const hasBackendServices =
     hasService(analysis, "database") ||
     hasService(analysis, "auth") ||
     hasService(analysis, "payments") ||
-    hasService(analysis, "email") ||
-    intake?.needsBackend === true;
+    hasService(analysis, "email");
+  const intakeNeedsBackend =
+    intake?.needsBackend === true ||
+    intake?.needsAuth === true ||
+    intake?.needsDatabase === true ||
+    intake?.needsFileUploads === true ||
+    intake?.needsEmail === true ||
+    intake?.needsPayments === true ||
+    intake?.needsBackgroundJobs === true ||
+    intake?.needsRealtime === true;
+  const hasBackend = hasBackendServices || intakeNeedsBackend;
   const isStatic =
     !hasBackend &&
-    /(vite|astro|static|react)/i.test(framework) &&
-    !/next/i.test(framework);
+    (intake?.needsBackend === false ||
+      (/(vite|astro|static|react)/i.test(framework) && !/next/i.test(framework)));
 
   if (isStatic) {
     return staticSiteOptions();
@@ -166,10 +175,7 @@ function fullStackOptions(analysis: RepoAnalysis): RecommendationOption[] {
             ? "Neon Pro or Supabase Pro Postgres"
             : database,
         auth,
-        storage:
-          hasStorage
-            ? storage
-            : "S3-compatible storage or Supabase Storage",
+        storage: hasStorage ? storage : "S3-compatible storage or Supabase Storage",
         email,
         payments,
         analytics: "PostHog",
