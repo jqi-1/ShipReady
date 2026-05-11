@@ -2,7 +2,7 @@
 
 import type { PlannerDraft } from "@/types/planner";
 
-const STORAGE_KEY = "launch-architect:v0-draft";
+const STORAGE_KEY = "shipready:v0-draft";
 
 export function loadPlannerDraft(): PlannerDraft | null {
   try {

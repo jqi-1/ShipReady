@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Launch Architect",
-  description: "Turn your AI-built prototype into a production deployment plan."
+  title: "ShipReady",
+  description: "Turn a GitHub repo into a production launch plan."
 };
 
 export default function RootLayout({

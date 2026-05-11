@@ -351,9 +351,9 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
             <div className="grid h-full content-between gap-6">
               <div className="grid gap-5">
                 <div>
-                  <p className="text-sm font-semibold text-signal">Launch Architect</p>
+                  <p className="text-sm font-semibold text-signal">ShipReady</p>
                   <h1 className="mt-2 text-2xl font-bold leading-tight">
-                    Prototype to production plan
+                    Turn a GitHub repo into a production launch plan
                   </h1>
                 </div>
                 <nav className="grid gap-2" aria-label="Planner stages">

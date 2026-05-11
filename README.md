@@ -1,6 +1,6 @@
-# Launch Architect
+# ShipReady
 
-Launch Architect turns AI-built prototypes into production deployment plans. V0 starts with a local planner workflow, basic deterministic repo analysis fixtures, stack recommendations, launch-plan output, cost estimates, risk review, and Markdown export placeholders.
+ShipReady turns AI-built prototypes into production deployment plans. V0 starts with a local planner workflow, basic deterministic repo analysis fixtures, stack recommendations, launch-plan output, cost estimates, risk review, and Markdown export placeholders.
 
 ## Local Setup
 

@@ -90,7 +90,7 @@ export function exportMetadataMarkdown(plan: LaunchPlan, repoUrl?: string) {
     `project: ${plan.projectName}`,
     repoUrl ? `repo: ${repoUrl}` : null,
     `generated: ${plan.generatedAt}`,
-    "version: launch-architect-v0",
+    "version: shipready-v0",
     "---"
   ]
     .filter(Boolean)

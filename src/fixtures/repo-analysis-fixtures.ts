@@ -202,6 +202,222 @@ export const composeWithPostgresFiles: RepoFile[] = [
   }
 ];
 
+export const astroStaticFiles: RepoFile[] = [
+  {
+    path: "package.json",
+    content: JSON.stringify({
+      name: "astro-site",
+      scripts: {
+        build: "astro build",
+        preview: "astro preview"
+      },
+      dependencies: {
+        astro: "latest",
+        react: "latest"
+      }
+    })
+  },
+  {
+    path: "package-lock.json",
+    content: "{}"
+  },
+  {
+    path: "astro.config.mjs",
+    content: "export default {};"
+  }
+];
+
+export const svelteKitAppFiles: RepoFile[] = [
+  {
+    path: "package.json",
+    content: JSON.stringify({
+      name: "svelte-kit-app",
+      scripts: {
+        build: "vite build",
+        preview: "vite preview"
+      },
+      dependencies: {
+        "@sveltejs/kit": "latest",
+        svelte: "latest"
+      }
+    })
+  },
+  {
+    path: "package-lock.json",
+    content: "{}"
+  },
+  {
+    path: "svelte.config.js",
+    content: "export default {};"
+  }
+];
+
+export const remixAppFiles: RepoFile[] = [
+  {
+    path: "package.json",
+    content: JSON.stringify({
+      name: "remix-app",
+      scripts: {
+        build: "remix build",
+        start: "remix-serve build/index.js"
+      },
+      dependencies: {
+        "@remix-run/react": "latest",
+        "@remix-run/node": "latest",
+        react: "latest"
+      }
+    })
+  },
+  {
+    path: "package-lock.json",
+    content: "{}"
+  }
+];
+
+export const nuxtAppFiles: RepoFile[] = [
+  {
+    path: "package.json",
+    content: JSON.stringify({
+      name: "nuxt-app",
+      scripts: {
+        build: "nuxt build",
+        start: "node .output/server/index.mjs"
+      },
+      dependencies: {
+        nuxt: "latest",
+        vue: "latest"
+      }
+    })
+  },
+  {
+    path: "package-lock.json",
+    content: "{}"
+  },
+  {
+    path: "nuxt.config.ts",
+    content: "export default {};"
+  }
+];
+
+export const staticHtmlFiles: RepoFile[] = [
+  {
+    path: "index.html",
+    content: "<html><body><h1>Hello</h1></body></html>"
+  }
+];
+
+export const fastifyApiFiles: RepoFile[] = [
+  {
+    path: "package.json",
+    content: JSON.stringify({
+      name: "fastify-api",
+      main: "server.js",
+      scripts: {
+        start: "node server.js"
+      },
+      dependencies: {
+        fastify: "latest"
+      }
+    })
+  },
+  {
+    path: "server.js",
+    content: "const fastify = require('fastify');"
+  }
+];
+
+export const nestJsApiFiles: RepoFile[] = [
+  {
+    path: "package.json",
+    content: JSON.stringify({
+      name: "nest-api",
+      scripts: {
+        build: "nest build",
+        start: "node dist/main"
+      },
+      dependencies: {
+        "@nestjs/core": "latest",
+        "@nestjs/common": "latest"
+      }
+    })
+  },
+  {
+    path: "package-lock.json",
+    content: "{}"
+  }
+];
+
+export const honoApiFiles: RepoFile[] = [
+  {
+    path: "package.json",
+    content: JSON.stringify({
+      name: "hono-api",
+      scripts: {
+        start: "node index.js"
+      },
+      dependencies: {
+        hono: "latest"
+      }
+    })
+  },
+  {
+    path: "index.js",
+    content: "const hono = require('hono');"
+  }
+];
+
+export const flaskApiFiles: RepoFile[] = [
+  {
+    path: "requirements.txt",
+    content: "flask\ngunicorn\n"
+  },
+  {
+    path: "app.py",
+    content: "from flask import Flask\napp = Flask(__name__)\n"
+  }
+];
+
+export const djangoApiFiles: RepoFile[] = [
+  {
+    path: "requirements.txt",
+    content: "django\ngunicorn\n"
+  },
+  {
+    path: "manage.py",
+    content: "import django\nos.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')\nfrom django.core.management import execute_from_command_line\n"
+  }
+];
+
+export const railsApiFiles: RepoFile[] = [
+  {
+    path: "Gemfile",
+    content: "source 'https://rubygems.org'\ngem 'rails', '~> 7.0'\n"
+  }
+];
+
+export const laravelApiFiles: RepoFile[] = [
+  {
+    path: "composer.json",
+    content: JSON.stringify({
+      name: "app/laravel",
+      require: {
+        "laravel/framework": "^10.0"
+      }
+    })
+  }
+];
+
+export const goHttpServiceFiles: RepoFile[] = [
+  {
+    path: "go.mod",
+    content: "module github.com/user/go-api\ngo 1.22\n"
+  },
+  {
+    path: "main.go",
+    content: "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\thttp.ListenAndServe(\":8080\", nil)\n\tfmt.Println(\"server running\")\n}"
+  }
+];
+
 export const composeWithRedisFiles: RepoFile[] = [
   {
     path: "compose.yaml",

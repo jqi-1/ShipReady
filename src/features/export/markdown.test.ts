@@ -110,7 +110,7 @@ describe("exportMetadataMarkdown", () => {
 
     expect(result).toContain("project: MyApp");
     expect(result).toContain("repo: https://github.com/org/repo");
-    expect(result).toContain("version: launch-architect-v0");
+    expect(result).toContain("version: shipready-v0");
   });
 });
 
