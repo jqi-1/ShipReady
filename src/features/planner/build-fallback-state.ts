@@ -3,6 +3,10 @@ import { generateChecklist } from "@/features/checklist/generate-checklist";
 import { estimateMonthlyCosts } from "@/features/cost-estimates/estimate-costs";
 import { exportLaunchPlanMarkdown } from "@/features/export/markdown";
 import { generateLaunchPlan } from "@/features/launch-plan/generate-launch-plan";
+import {
+  inferIntakeFromAnalysis,
+  summarizeMissingInformation
+} from "@/features/planner/missing-information";
 import { buildRecommendationOptions } from "@/features/recommendations/recommend-stack";
 import { reviewRisks } from "@/features/risk-review/review-risks";
 import { demoProjectAnalysis, demoProjectIntake } from "@/fixtures/demo-project";
@@ -115,7 +119,7 @@ export function buildIntakeOnlyAnalysis(input: {
       {
         label: "Repo inspection status",
         value:
-          "Live repo fetching is out of scope for Phase 1. This state uses intake answers and defaulted analysis placeholders.",
+          "Repo inspection did not produce file evidence yet. This state uses intake answers and defaulted analysis placeholders.",
         source: "defaulted",
         confidence: "high"
       }
@@ -130,7 +134,9 @@ export function buildPlannerDraft(
   updatedAt?: string
 ): PlannerDraft {
   const draftUpdatedAt = updatedAt ?? new Date().toISOString();
-  const recommendations = buildRecommendationOptions(analysis, intake);
+  const inferredIntake = inferIntakeFromAnalysis(intake, analysis);
+  const missingInformation = summarizeMissingInformation(analysis, inferredIntake);
+  const recommendations = buildRecommendationOptions(analysis, inferredIntake);
   const selectedRecommendation =
     recommendations.find(
       (recommendation) => recommendation.id === selectedRecommendationId
@@ -140,7 +146,7 @@ export function buildPlannerDraft(
   const checklist = generateChecklist(analysis, selectedRecommendation, risks);
   const launchPlan = generateLaunchPlan({
     analysis,
-    intake,
+    intake: inferredIntake,
     recommendation: selectedRecommendation,
     alternatives: recommendations.slice(1),
     risks,
@@ -150,8 +156,9 @@ export function buildPlannerDraft(
   });
 
   return {
-    intake,
+    intake: inferredIntake,
     analysis,
+    missingInformation,
     recommendations,
     selectedRecommendationId: selectedRecommendation.id,
     risks,

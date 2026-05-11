@@ -156,6 +156,7 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
   );
   const [repoUrl, setRepoUrl] = useState(draft.intake.repoUrl);
   const [repoError, setRepoError] = useState("");
+  const [repoStatus, setRepoStatus] = useState("");
   const [copied, setCopied] = useState("");
   const [draftLoaded, setDraftLoaded] = useState(false);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -199,7 +200,7 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
   );
   const launchBlockerCount = draft.risks.filter((risk) => risk.launchBlocker).length;
 
-  function analyzeRepo() {
+  async function analyzeRepo() {
     const parsed = parseGitHubRepoUrl(repoUrl);
 
     if (!parsed) {
@@ -208,22 +209,69 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
     }
 
     const intake = buildBlankProjectIntake(parsed.normalizedUrl, "user_provided");
-    const analysis = buildIntakeOnlyAnalysis({
-      repoUrl: parsed.normalizedUrl,
-      projectName: parsed.repo,
-      projectSource: "user_provided"
-    });
 
     setRepoError("");
     setRepoUrl(parsed.normalizedUrl);
     setCopied("");
-    setDraft(buildPlannerDraft(analysis, intake));
+    setRepoStatus("Fetching public GitHub repo and reading deployment files...");
+
+    try {
+      const response = await fetch("/api/analyze-repo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ repoUrl: parsed.normalizedUrl })
+      });
+      const body = (await response.json()) as {
+        ok: boolean;
+        message?: string;
+        analysis?: PlannerDraft["analysis"];
+        truncated?: boolean;
+      };
+
+      if (!response.ok || !body.ok || !body.analysis) {
+        const analysis = buildIntakeOnlyAnalysis({
+          repoUrl: parsed.normalizedUrl,
+          projectName: parsed.repo,
+          projectSource: "user_provided"
+        });
+
+        setRepoError(
+          body.message ??
+            "Repo inspection failed. Continue manually and confirm detected facts later."
+        );
+        setRepoStatus("Using intake-only fallback until repo inspection succeeds.");
+        setDraft(buildPlannerDraft(analysis, intake));
+        return;
+      }
+
+      setRepoStatus(
+        body.truncated
+          ? "Repo inspected. Large repo results were truncated to deployment-relevant files."
+          : "Repo inspected from public GitHub files."
+      );
+      setDraft(buildPlannerDraft(body.analysis, intake));
+    } catch {
+      const analysis = buildIntakeOnlyAnalysis({
+        repoUrl: parsed.normalizedUrl,
+        projectName: parsed.repo,
+        projectSource: "user_provided"
+      });
+
+      setRepoError(
+        "Repo inspection could not reach the analysis route. Continue manually or try again."
+      );
+      setRepoStatus("Using intake-only fallback until repo inspection succeeds.");
+      setDraft(buildPlannerDraft(analysis, intake));
+    }
   }
 
   function startManually() {
     const manualDraft = buildManualPlannerState();
     setRepoUrl("");
     setRepoError("");
+    setRepoStatus("");
     setCopied("");
     setDraft(manualDraft);
   }
@@ -234,6 +282,7 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
     setDraft(fallbackDraft);
     setRepoUrl(fallbackDraft.intake.repoUrl);
     setRepoError("");
+    setRepoStatus("");
     setCopied("");
   }
 
@@ -335,6 +384,7 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                   <Alert tone="danger">{repoError}</Alert>
                 </div>
               ) : null}
+              {repoStatus ? <Alert>{repoStatus}</Alert> : null}
               {!configStatus.githubReady || !configStatus.aiReady ? (
                 <Alert tone="warn" role="alert">
                   Live repo inspection or AI generation is not fully configured. Missing:{" "}
@@ -343,8 +393,9 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                 </Alert>
               ) : null}
               <Alert>
-                Repo fetching is out of scope for Phase 1. A valid repo URL creates
-                intake-only project state; live inspection starts in the next phase.
+                Public GitHub repos can be inspected now. Private repo inspection uses the
+                GitHub App credential path and falls back to manual intake when
+                unavailable.
               </Alert>
             </section>
           </Panel>
@@ -402,6 +453,38 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
           <Panel>
             <section id="questions" className="grid gap-4">
               <SectionHeader eyebrow="Questions" title="Deployment inputs" />
+              <div className="grid gap-3 lg:grid-cols-3">
+                <SummaryList
+                  title="Detected with high confidence"
+                  items={draft.missingInformation.highConfidence}
+                  empty="No high-confidence repo facts yet."
+                />
+                <SummaryList
+                  title="Needs confirmation"
+                  items={draft.missingInformation.needsConfirmation}
+                  empty="No inferred facts need confirmation yet."
+                />
+                <SummaryList
+                  title="Unknown"
+                  items={draft.missingInformation.unknowns}
+                  empty="No core deployment unknowns."
+                />
+              </div>
+              {draft.missingInformation.questions.length > 0 ? (
+                <div className="rounded-md border border-line bg-[#fbfcfd] p-4">
+                  <h3 className="text-base font-bold">Priority follow-ups</h3>
+                  <ul className="mt-3 grid gap-2 text-sm text-steel">
+                    {draft.missingInformation.questions.map((question) => (
+                      <li key={question.id}>
+                        <span className="font-semibold text-ink">
+                          {question.question}
+                        </span>{" "}
+                        {question.reason}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
               <QuestionGroup title="Project shape">
                 <SelectQuestion
                   field="appType"
@@ -693,6 +776,31 @@ function QuestionGroup({ title, children }: { title: string; children: ReactNode
     <div className="grid gap-3">
       <h3 className="text-base font-bold">{title}</h3>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{children}</div>
+    </div>
+  );
+}
+
+function SummaryList({
+  title,
+  items,
+  empty
+}: {
+  title: string;
+  items: string[];
+  empty: string;
+}) {
+  return (
+    <div className="rounded-md border border-line bg-[#fbfcfd] p-4">
+      <h3 className="text-sm font-bold">{title}</h3>
+      {items.length > 0 ? (
+        <ul className="mt-3 grid gap-2 text-sm text-steel">
+          {items.slice(0, 5).map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-3 text-sm text-steel">{empty}</p>
+      )}
     </div>
   );
 }

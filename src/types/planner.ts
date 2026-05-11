@@ -164,10 +164,95 @@ export interface ServiceDetection {
   evidence: Evidence[];
 }
 
+export interface AnalysisIssue {
+  id: string;
+  severity: RiskSeverity;
+  title: string;
+  description: string;
+  evidence?: Evidence[];
+}
+
+export interface CandidateAppRoot {
+  path: string;
+  reason: string;
+  confidence: Confidence;
+}
+
+export interface RepoFetchStatus {
+  status: "not_started" | "fetched" | "failed";
+  source: "public_github" | "github_app" | "uploaded_files" | "demo" | "manual";
+  message: string;
+  defaultBranch?: string;
+  fileCount?: number;
+}
+
+export interface DockerfileAnalysis {
+  path: string;
+  baseImages: string[];
+  stages: string[];
+  installSteps: string[];
+  copyInstructions: string[];
+  exposedPorts: string[];
+  workdir?: string;
+  user?: string;
+  envVars: string[];
+  buildArgs: string[];
+  healthcheck?: string;
+  startCommand?: string;
+  likelyProduction: boolean;
+}
+
+export interface DockerComposeService {
+  name: string;
+  image?: string;
+  buildContext?: string;
+  dockerfile?: string;
+  ports: string[];
+  volumes: string[];
+  envFiles: string[];
+  dependsOn: string[];
+  networks: string[];
+  healthcheck?: string;
+}
+
+export interface DockerComposeAnalysis {
+  path: string;
+  services: DockerComposeService[];
+  namedVolumes: string[];
+}
+
+export interface DockerAnalysis {
+  dockerfiles: DockerfileAnalysis[];
+  composeFiles: DockerComposeAnalysis[];
+  hasDockerignore: boolean;
+  serviceDependencies: string[];
+  needsProductionDocker: boolean;
+  probablyLocalOnly: boolean;
+  recommendation: string;
+  suggestedDockerignore?: string;
+  risks: AnalysisIssue[];
+}
+
+export interface MissingInformationQuestion {
+  id: ProjectIntakeField;
+  question: string;
+  reason: string;
+}
+
+export interface MissingInformationSummary {
+  highConfidence: string[];
+  needsConfirmation: string[];
+  unknowns: string[];
+  questions: MissingInformationQuestion[];
+}
+
 export interface RepoAnalysis {
   projectName: DeploymentFact;
   repoUrl?: string;
+  fetchStatus?: RepoFetchStatus;
   appRoot: DeploymentFact;
+  candidateAppRoots?: CandidateAppRoot[];
+  isMonorepo?: DeploymentFact<boolean>;
   packageManager?: DeploymentFact;
   frontendFramework?: DeploymentFact;
   backendFramework?: DeploymentFact;
@@ -176,6 +261,8 @@ export interface RepoAnalysis {
   runtime?: DeploymentFact;
   envVars: EnvVariable[];
   services: ServiceDetection[];
+  docker?: DockerAnalysis;
+  deploymentBlockers?: AnalysisIssue[];
   facts: DeploymentFact[];
 }
 
@@ -259,6 +346,7 @@ export interface LaunchPlan {
 export interface PlannerDraft {
   intake: ProjectIntake;
   analysis: RepoAnalysis;
+  missingInformation: MissingInformationSummary;
   recommendations: RecommendationOption[];
   selectedRecommendationId: string;
   risks: Risk[];
