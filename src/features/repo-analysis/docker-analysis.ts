@@ -1,3 +1,4 @@
+import { slug } from "@/lib/commands";
 import type { RepoFile } from "@/features/repo-analysis/repo-file";
 import type {
   AnalysisIssue,
@@ -451,9 +452,4 @@ function basename(path: string) {
   return path.split("/").at(-1) ?? path;
 }
 
-function slug(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
+

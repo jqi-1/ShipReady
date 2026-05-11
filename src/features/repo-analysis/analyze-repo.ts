@@ -1,3 +1,4 @@
+import { slug } from "@/lib/commands";
 import {
   detectEnvironmentVariables,
   detectHardcodedSecrets
@@ -836,9 +837,4 @@ function basename(path: string) {
   return path.split("/").at(-1) ?? path;
 }
 
-function slug(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
+
