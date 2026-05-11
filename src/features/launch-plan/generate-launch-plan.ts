@@ -1,4 +1,5 @@
 import { hasService, serviceName } from "@/lib/service-utils";
+import { installCommandFor, slug } from "@/lib/commands";
 import type {
   ChecklistSection,
   CostEstimate,
@@ -394,7 +395,17 @@ function renderCostEstimate(costs: CostEstimate) {
       (tier) => `| ${tier.label} | ${tier.monthlyRange} | ${tier.assumptions.join(" ")} |`
     ),
     "",
-    "Verify provider pricing before purchase. Free tiers are useful for prototypes, not guaranteed production capacity."
+    "Verify provider pricing before purchase. Free tiers are useful for prototypes, not guaranteed production capacity.",
+    "",
+    "### Upgrade Triggers",
+    "",
+    "These limits may force a plan upgrade as the app grows:",
+    "",
+    "| Service | Limit | Consequence |",
+    "| --- | --- | --- |",
+    ...costs.upgradeTriggers.map(
+      (trigger) => `| ${trigger.service} | ${trigger.limit} | ${trigger.consequence} |`
+    )
   ].join("\n");
 }
 
@@ -559,28 +570,8 @@ function migrationCommand(analysis: RepoAnalysis) {
   return undefined;
 }
 
-function installCommandFor(packageManager?: string) {
-  if (packageManager === "pnpm") return "pnpm install";
-  if (packageManager === "yarn") return "yarn install --frozen-lockfile";
-  if (packageManager === "bun") return "bun install";
-  if (packageManager === "pip") return "pip install -r requirements.txt";
-  if (packageManager === "poetry") return "poetry install";
-  if (packageManager === "uv") return "uv sync";
-  if (packageManager === "go") return "go mod download";
-  if (packageManager === "bundler") return "bundle install";
-  if (packageManager === "composer") return "composer install --no-dev";
-  return "npm ci";
-}
-
 function factValue(value?: string, source?: string, confidence?: string) {
   if (!value) return "unknown";
   if (!source || !confidence) return value;
   return `${value} (${source}, ${confidence})`;
-}
-
-function slug(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
 }

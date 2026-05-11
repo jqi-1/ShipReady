@@ -300,10 +300,17 @@ export interface CostTier {
   categories: Record<string, string>;
 }
 
+export interface UpgradeTrigger {
+  service: string;
+  limit: string;
+  consequence: string;
+}
+
 export interface CostEstimate {
   stackId: string;
   caveat: string;
   tiers: CostTier[];
+  upgradeTriggers: UpgradeTrigger[];
 }
 
 export interface ChecklistItem {

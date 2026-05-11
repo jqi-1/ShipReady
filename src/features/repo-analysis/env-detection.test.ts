@@ -93,7 +93,7 @@ describe("detectEnvironmentVariables", () => {
     expect(findings).toHaveLength(1);
     expect(findings[0]).toMatchObject({
       name: "STRIPE_SECRET_KEY",
-      valuePreview: "sk_l...mnop"
+      valuePreview: "fake...mnop"
     });
   });
 

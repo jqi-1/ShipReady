@@ -29,4 +29,19 @@ describe("estimateMonthlyCosts", () => {
       );
     }
   });
+
+  it("includes upgrade triggers", () => {
+    const [recommendation] = buildRecommendationOptions(
+      demoProjectAnalysis,
+      demoProjectIntake
+    );
+    const estimate = estimateMonthlyCosts(recommendation);
+
+    expect(estimate.upgradeTriggers.length).toBeGreaterThan(0);
+    for (const trigger of estimate.upgradeTriggers) {
+      expect(trigger).toHaveProperty("service");
+      expect(trigger).toHaveProperty("limit");
+      expect(trigger).toHaveProperty("consequence");
+    }
+  });
 });

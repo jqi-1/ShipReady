@@ -6,9 +6,12 @@ import {
   CheckCircle2,
   Clipboard,
   Download,
+  FileCode,
+  FileText,
   Github,
   RefreshCw,
-  ShieldAlert
+  ShieldAlert,
+  Terminal
 } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +48,14 @@ import type {
   TechnicalComfort,
   TrafficRange
 } from "@/types/planner";
+import { placeholderFor } from "@/features/repo-analysis/env-detection";
+import {
+  exportChecklistMarkdown,
+  exportDockerfilesMarkdown,
+  exportEnvExampleSuggestion,
+  exportMetadataMarkdown
+} from "@/features/export/markdown";
+import { installCommandFor, slug } from "@/lib/commands";
 
 const stages = [
   "Intake",
@@ -150,6 +161,16 @@ interface PlannerWorkflowProps {
   configStatus: RuntimeConfigStatus;
 }
 
+type WorkflowStageStatus =
+  | "idle"
+  | "queued"
+  | "fetching"
+  | "analyzing"
+  | "needs_input"
+  | "generating"
+  | "completed"
+  | "failed";
+
 export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
   const [draft, setDraft] = useState<PlannerDraft>(() =>
     buildManualPlannerState(HYDRATION_SAFE_TIMESTAMP)
@@ -159,6 +180,8 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
   const [repoStatus, setRepoStatus] = useState("");
   const [copied, setCopied] = useState("");
   const [draftLoaded, setDraftLoaded] = useState(false);
+  const [expandedEvidence, setExpandedEvidence] = useState<string | null>(null);
+  const [workflowStatus, setWorkflowStatus] = useState<WorkflowStageStatus>("idle");
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -213,6 +236,10 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
     setRepoError("");
     setRepoUrl(parsed.normalizedUrl);
     setCopied("");
+    setWorkflowStatus("queued");
+    setRepoStatus("Queued for repo inspection...");
+
+    setWorkflowStatus("fetching");
     setRepoStatus("Fetching public GitHub repo and reading deployment files...");
 
     try {
@@ -242,16 +269,19 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
             "Repo inspection failed. Continue manually and confirm detected facts later."
         );
         setRepoStatus("Using intake-only fallback until repo inspection succeeds.");
+        setWorkflowStatus("failed");
         setDraft(buildPlannerDraft(analysis, intake));
         return;
       }
 
+      setWorkflowStatus("analyzing");
       setRepoStatus(
         body.truncated
           ? "Repo inspected. Large repo results were truncated to deployment-relevant files."
           : "Repo inspected from public GitHub files."
       );
       setDraft(buildPlannerDraft(body.analysis, intake));
+      setWorkflowStatus("completed");
     } catch {
       const analysis = buildIntakeOnlyAnalysis({
         repoUrl: parsed.normalizedUrl,
@@ -263,6 +293,7 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
         "Repo inspection could not reach the analysis route. Continue manually or try again."
       );
       setRepoStatus("Using intake-only fallback until repo inspection succeeds.");
+      setWorkflowStatus("failed");
       setDraft(buildPlannerDraft(analysis, intake));
     }
   }
@@ -326,18 +357,33 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                   </h1>
                 </div>
                 <nav className="grid gap-2" aria-label="Planner stages">
-                  {stages.map((stage, index) => (
-                    <a
-                      key={stage}
-                      href={`#${stage.toLowerCase().replaceAll(" ", "-")}`}
-                      className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold text-steel hover:bg-fog hover:text-ink"
-                    >
-                      <span className="flex h-7 w-7 items-center justify-center rounded bg-white text-xs text-ink">
-                        {index + 1}
-                      </span>
-                      {stage}
-                    </a>
-                  ))}
+                  {stages.map((stage, index) => {
+                    const stageStatus = stageStatusFor(stage, workflowStatus, draft);
+                    return (
+                      <a
+                        key={stage}
+                        href={`#${stage.toLowerCase().replaceAll(" ", "-")}`}
+                        className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold text-steel hover:bg-fog hover:text-ink"
+                      >
+                        <span
+                          className={`flex h-7 w-7 items-center justify-center rounded text-xs ${
+                            stageStatus === "active"
+                              ? "bg-signal text-white"
+                              : stageStatus === "done"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-white text-ink"
+                          }`}
+                        >
+                          {stageStatus === "done" ? (
+                            <CheckCircle2 size={14} />
+                          ) : (
+                            index + 1
+                          )}
+                        </span>
+                        {stage}
+                      </a>
+                    );
+                  })}
                 </nav>
               </div>
               <Button variant="secondary" onClick={resetDemo}>
@@ -385,68 +431,112 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                 </div>
               ) : null}
               {repoStatus ? <Alert>{repoStatus}</Alert> : null}
-              {!configStatus.githubReady || !configStatus.aiReady ? (
+              {configStatus.githubAuthState === "not_installed" ? (
                 <Alert tone="warn" role="alert">
-                  Live repo inspection or AI generation is not fully configured. Missing:{" "}
-                  {[...configStatus.missingGitHub, ...configStatus.missingAi].join(", ")}.
+                  GitHub App credentials are present but the app is not yet installed on
+                  any repositories. Install the app on your GitHub org or account to
+                  inspect private repos. Public repo inspection still works.
+                </Alert>
+              ) : configStatus.githubAuthState === "missing_keys" && !configStatus.githubReady ? (
+                <Alert tone="warn" role="alert">
+                  GitHub App credentials are not fully configured. Public repos can be
+                  inspected; private repos need{" "}
+                  {configStatus.missingGitHub.join(", ")} set.
                   The deterministic fallback remains available.
                 </Alert>
               ) : null}
-              <Alert>
-                Public GitHub repos can be inspected now. Private repo inspection uses the
-                GitHub App credential path and falls back to manual intake when
-                unavailable.
-              </Alert>
+              {!configStatus.aiReady ? (
+                <Alert tone="warn" role="alert">
+                  AI generation is not configured. Missing:{" "}
+                  {configStatus.missingAi.join(", ")}.
+                  The deterministic fallback will be used for all planning.
+                </Alert>
+              ) : null}
             </section>
           </Panel>
 
           <Panel>
             <section id="analysis" className="grid gap-4">
               <SectionHeader eyebrow="Analysis" title="Detected facts" />
-              <div className="grid gap-3 md:grid-cols-2">
-                <Fact
-                  label="Project"
-                  value={draft.analysis.projectName.value}
-                  source={draft.analysis.projectName.source}
-                />
-                <Fact
-                  label="Framework"
-                  value={draft.analysis.frontendFramework?.value ?? "Unknown"}
-                  source={draft.analysis.frontendFramework?.source ?? "unknown"}
-                />
-                <Fact
-                  label="Package manager"
-                  value={draft.analysis.packageManager?.value ?? "Unknown"}
-                  source={draft.analysis.packageManager?.source ?? "unknown"}
-                />
-                <Fact
-                  label="Build"
-                  value={draft.analysis.buildCommand?.value ?? "Unknown"}
-                  source={draft.analysis.buildCommand?.source ?? "unknown"}
-                />
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] border-collapse text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-line text-steel">
-                      <th className="py-2 pr-3">Env var</th>
-                      <th className="py-2 pr-3">Exposure</th>
-                      <th className="py-2 pr-3">Required</th>
-                      <th className="py-2 pr-3">Confidence</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {draft.analysis.envVars.map((envVar) => (
-                      <tr key={envVar.name} className="border-b border-line">
-                        <td className="py-3 pr-3 font-mono text-xs">{envVar.name}</td>
-                        <td className="py-3 pr-3">{envVar.exposure}</td>
-                        <td className="py-3 pr-3">{envVar.required ? "Yes" : "No"}</td>
-                        <td className="py-3 pr-3">{envVar.confidence}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {workflowStatus === "fetching" || workflowStatus === "analyzing" ? (
+                <Alert>
+                  {workflowStatus === "fetching"
+                    ? "Fetching repo files from GitHub..."
+                    : "Analyzing detected files and services..."}
+                </Alert>
+              ) : workflowStatus === "failed" && draft.analysis.envVars.length === 0 ? (
+                <Alert>
+                  Repo inspection failed. Fill in the deployment questions below to
+                  continue with manual planning.
+                </Alert>
+              ) : null}
+              {draft.analysis.facts.length > 0 || draft.analysis.frontendFramework || draft.analysis.packageManager ? (
+                <>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <Fact
+                      label="Project"
+                      value={draft.analysis.projectName.value}
+                      source={draft.analysis.projectName.source}
+                      evidence={draft.analysis.projectName.evidence}
+                      expanded={expandedEvidence}
+                      onToggle={setExpandedEvidence}
+                    />
+                    <Fact
+                      label="Framework"
+                      value={draft.analysis.frontendFramework?.value ?? "Unknown"}
+                      source={draft.analysis.frontendFramework?.source ?? "unknown"}
+                      evidence={draft.analysis.frontendFramework?.evidence}
+                      expanded={expandedEvidence}
+                      onToggle={setExpandedEvidence}
+                    />
+                    <Fact
+                      label="Package manager"
+                      value={draft.analysis.packageManager?.value ?? "Unknown"}
+                      source={draft.analysis.packageManager?.source ?? "unknown"}
+                      evidence={draft.analysis.packageManager?.evidence}
+                      expanded={expandedEvidence}
+                      onToggle={setExpandedEvidence}
+                    />
+                    <Fact
+                      label="Build"
+                      value={draft.analysis.buildCommand?.value ?? "Unknown"}
+                      source={draft.analysis.buildCommand?.source ?? "unknown"}
+                      evidence={draft.analysis.buildCommand?.evidence}
+                      expanded={expandedEvidence}
+                      onToggle={setExpandedEvidence}
+                    />
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-0 border-collapse text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-line text-steel">
+                          <th className="py-2 pr-2 md:pr-3">Env var</th>
+                          <th className="py-2 pr-2 md:pr-3">Exposure</th>
+                          <th className="py-2 pr-2 md:pr-3">Required</th>
+                          <th className="py-2 pr-2 md:pr-3">Confidence</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {draft.analysis.envVars.map((envVar) => (
+                          <tr key={envVar.name} className="border-b border-line">
+                            <td className="max-w-[160px] truncate py-3 pr-2 font-mono text-xs md:max-w-none md:pr-3">
+                              {envVar.name}
+                            </td>
+                            <td className="py-3 pr-2 md:pr-3">{envVar.exposure}</td>
+                            <td className="py-3 pr-2 md:pr-3">{envVar.required ? "Yes" : "No"}</td>
+                            <td className="py-3 pr-2 md:pr-3">{envVar.confidence}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              ) : (
+                <Alert>
+                  No repo analysis data yet. Use the intake form above to enter a GitHub
+                  URL, or start manually with the &quot;Start manually&quot; button.
+                </Alert>
+              )}
             </section>
           </Panel>
 
@@ -694,7 +784,7 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
 
           <Panel>
             <section id="export" className="grid gap-4">
-              <SectionHeader eyebrow="Export" title="Copy and export placeholders" />
+              <SectionHeader eyebrow="Export" title="Copy and export" />
               <div className="flex flex-wrap gap-3">
                 <Button
                   variant="secondary"
@@ -707,8 +797,46 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                   variant="secondary"
                   onClick={() =>
                     copyText(
+                      "commands",
+                      [
+                        `# Install dependencies`,
+                        `${installCommandFor(draft.analysis.packageManager?.value)}`,
+                        ``,
+                        `# Build`,
+                        `${draft.analysis.buildCommand?.value ?? "npm run build"}`,
+                        ``,
+                        `# Start`,
+                        `${draft.analysis.startCommand?.value ?? "npm start"}`
+                      ].join("\n")
+                    )
+                  }
+                >
+                  <Terminal size={16} aria-hidden="true" />
+                  Copy commands
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() =>
+                    copyText(
+                      "checklist",
+                      exportChecklistMarkdown(draft.checklist)
+                    )
+                  }
+                >
+                  <FileText size={16} aria-hidden="true" />
+                  Copy checklist
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() =>
+                    copyText(
                       "env",
-                      draft.analysis.envVars.map((envVar) => `${envVar.name}=`).join("\n")
+                      draft.analysis.envVars
+                        .map(
+                          (envVar) =>
+                            `# ${envVar.description}${envVar.required ? " Required." : " Optional."}\n${envVar.name}=${placeholderFor(envVar)}`
+                        )
+                        .join("\n\n")
                     )
                   }
                 >
@@ -717,11 +845,41 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                 </Button>
                 <Button
                   variant="secondary"
-                  disabled
-                  title="Markdown file export is a V0 placeholder"
+                  onClick={() =>
+                    copyText(
+                      "env-example",
+                      exportEnvExampleSuggestion(draft.analysis.envVars)
+                    )
+                  }
+                >
+                  <FileCode size={16} aria-hidden="true" />
+                  Copy .env.example
+                </Button>
+                {(() => {
+                  const dockerMd = exportDockerfilesMarkdown(draft.analysis);
+                  return dockerMd ? (
+                    <Button
+                      variant="secondary"
+                      onClick={() =>
+                        copyText("docker", dockerMd ?? "")
+                      }
+                    >
+                      <FileCode size={16} aria-hidden="true" />
+                      Copy Docker config
+                    </Button>
+                  ) : null;
+                })()}
+                <Button
+                  variant="secondary"
+                  onClick={() =>
+                    downloadText(
+                      `${exportMetadataMarkdown(draft.launchPlan, draft.analysis.repoUrl)}\n\n${draft.launchPlan.markdown}`,
+                      `${slug(draft.analysis.projectName.value)}-launch-plan.md`
+                    )
+                  }
                 >
                   <Download size={16} aria-hidden="true" />
-                  Markdown
+                  Download .md
                 </Button>
               </div>
               {copied ? (
@@ -752,12 +910,21 @@ function SectionHeader({ eyebrow, title }: { eyebrow: string; title: string }) {
 function Fact({
   label,
   value,
-  source
+  source,
+  evidence,
+  expanded,
+  onToggle
 }: {
   label: string;
   value: string;
   source: string;
+  evidence?: { path: string; detail: string }[];
+  expanded?: string | null;
+  onToggle?: (id: string | null) => void;
 }) {
+  const hasEvidence = evidence && evidence.length > 0;
+  const isExpanded = expanded === label;
+
   return (
     <div className="rounded-md border border-line bg-[#fbfcfd] p-4">
       <div className="flex items-start justify-between gap-3">
@@ -765,8 +932,28 @@ function Fact({
           <p className="text-sm font-semibold text-steel">{label}</p>
           <p className="mt-1 font-semibold">{value}</p>
         </div>
-        <Badge tone={source === "detected" ? "good" : "neutral"}>{source}</Badge>
+        <div className="flex items-center gap-2">
+          <Badge tone={source === "detected" ? "good" : "neutral"}>{source}</Badge>
+          {hasEvidence ? (
+            <button
+              className="text-xs text-signal underline underline-offset-2"
+              onClick={() => onToggle?.(isExpanded ? null : label)}
+              aria-expanded={isExpanded}
+            >
+              {isExpanded ? "Hide" : evidence!.length > 1 ? `${evidence!.length} sources` : "Source"}
+            </button>
+          ) : null}
+        </div>
       </div>
+      {hasEvidence && isExpanded ? (
+        <ul className="mt-3 grid gap-1.5 border-t border-line pt-3 text-xs text-steel">
+          {evidence!.map((item, index) => (
+            <li key={index} className="truncate">
+              <span className="font-mono">{item.path}</span>: {item.detail}
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }
@@ -943,6 +1130,57 @@ function buildManualPlannerState(updatedAt?: string) {
   });
 
   return buildPlannerDraft(analysis, intake, undefined, updatedAt);
+}
+
+function stageStatusFor(
+  stage: string,
+  workflowStatus: WorkflowStageStatus,
+  draft: PlannerDraft
+): "idle" | "active" | "done" {
+  if (stage === "Intake") return "done";
+
+  const hasAnalysis = draft.analysis.envVars.length > 0 || draft.analysis.services.length > 0;
+  const hasQuestions = draft.missingInformation.questions.length > 0;
+  const hasRecommendations = draft.recommendations.length > 0;
+  const hasPlan = draft.launchPlan.markdown.length > 0;
+
+  if (stage === "Analysis") {
+    if (workflowStatus === "fetching" || workflowStatus === "analyzing") return "active";
+    return hasAnalysis ? "done" : "active";
+  }
+
+  if (stage === "Questions") {
+    if (!hasAnalysis) return "idle";
+    return !hasQuestions ? "done" : "active";
+  }
+
+  if (stage === "Recommendation") {
+    if (hasQuestions) return "idle";
+    return hasRecommendations ? "done" : "active";
+  }
+
+  if (stage === "Launch Plan") {
+    if (!hasRecommendations) return "idle";
+    return hasPlan ? "done" : "active";
+  }
+
+  if (stage === "Export") {
+    return hasPlan ? "done" : "idle";
+  }
+
+  return "idle";
+}
+
+function downloadText(content: string, filename: string) {
+  const blob = new Blob([content], { type: "text/markdown" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
 }
 
 function normalizeDraft(draft: PlannerDraft) {

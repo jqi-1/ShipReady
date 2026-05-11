@@ -3,6 +3,8 @@ export interface RuntimeConfigStatus {
   aiReady: boolean;
   missingGitHub: string[];
   missingAi: string[];
+  githubAppInstalled: boolean;
+  githubAuthState: "configured" | "missing_keys" | "not_installed";
 }
 
 const GITHUB_ENV_VARS = [
@@ -18,12 +20,25 @@ const AI_ENV_VARS = ["AI_PROVIDER", "AI_API_KEY"];
 export function getRuntimeConfigStatus(): RuntimeConfigStatus {
   const missingGitHub = missingEnvVars(GITHUB_ENV_VARS);
   const missingAi = missingEnvVars(AI_ENV_VARS);
+  const githubReady = missingGitHub.length === 0;
+  const aiReady = missingAi.length === 0;
+
+  let githubAuthState: RuntimeConfigStatus["githubAuthState"];
+  if (!githubReady) {
+    githubAuthState = "missing_keys";
+  } else if (!process.env.GITHUB_APP_INSTALLED) {
+    githubAuthState = "not_installed";
+  } else {
+    githubAuthState = "configured";
+  }
 
   return {
-    githubReady: missingGitHub.length === 0,
-    aiReady: missingAi.length === 0,
+    githubReady,
+    aiReady,
     missingGitHub,
-    missingAi
+    missingAi,
+    githubAppInstalled: githubAuthState === "configured",
+    githubAuthState
   };
 }
 

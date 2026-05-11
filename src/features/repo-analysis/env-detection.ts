@@ -306,12 +306,12 @@ function isSourceFile(path: string) {
 }
 
 function looksLikePlaceholder(value: string) {
-  return /^(?:changeme|example|placeholder|replace|test|todo|xxx|your-|your_|sk_test_|pk_test_|whsec_test)/i.test(
+  return /^(?:changeme|example|placeholder|replace|test|todo|xxx|your-|your_|sk_test_|pk_test_|whsec_test_)/i.test(
     value
   );
 }
 
-function placeholderFor(envVar: EnvVariable) {
+export function placeholderFor(envVar: EnvVariable) {
   if (envVar.exposure === "client") return "replace-with-public-value";
   if (/URL$/.test(envVar.name)) return "https://replace-with-production-url.example";
   if (isLikelySecret(envVar.name)) return "replace-with-production-secret";

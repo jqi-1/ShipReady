@@ -38,6 +38,48 @@ export function estimateMonthlyCosts(recommendation: RecommendationOption): Cost
         "$500-2,500+",
         "Meaningful production scale, higher bandwidth, database tuning, storage growth, and support needs."
       )
+    ],
+    upgradeTriggers: [
+      {
+        service: "Bandwidth",
+        limit: "Provider free tier or plan limit reached",
+        consequence: "Overage charges or throttling; upgrade to a paid plan."
+      },
+      {
+        service: "Database",
+        limit: "Row count, storage, or connection limit reached",
+        consequence: "Upgrade to a larger database tier or add read replicas."
+      },
+      {
+        service: "Auth",
+        limit: "Monthly active user limit reached on auth provider free tier",
+        consequence: "Upgrade to a paid auth plan or switch providers."
+      },
+      {
+        service: "Email",
+        limit: "Monthly email send limit reached",
+        consequence: "Overage charges or delivery delays; upgrade to a higher volume plan."
+      },
+      {
+        service: "Serverless / Edge Functions",
+        limit: "Execution duration, invocation count, or memory limit reached",
+        consequence: "Throttling or additional execution costs."
+      },
+      {
+        service: "File Storage",
+        limit: "Storage capacity or bandwidth limit reached",
+        consequence: "Upgrade to a larger storage plan or add CDN caching."
+      },
+      {
+        service: "Analytics",
+        limit: "Event count or user limit reached",
+        consequence: "Sampled data or upgrade to a paid analytics plan."
+      },
+      {
+        service: "Monitoring",
+        limit: "Event retention or team member limit reached",
+        consequence: "Upgrade to a paid monitoring plan for longer retention."
+      }
     ]
   };
 }

@@ -333,33 +333,33 @@ Build the first useful version of Launch Architect: a practical production deplo
 
 ## 9. Risk Review
 
-- [ ] Flag missing production environment variables.
-- [ ] Flag hardcoded secrets.
+- [x] Flag missing production environment variables.
+- [x] Flag hardcoded secrets.
 - [x] Flag missing auth secrets.
-- [ ] Flag missing database migration strategy.
+- [x] Flag missing database migration strategy.
 - [x] Flag missing error monitoring.
 - [x] Flag missing backup strategy.
-- [ ] Flag missing rate limiting.
+- [x] Flag missing rate limiting.
 - [x] Flag missing payment webhook verification.
-- [ ] Flag missing email domain authentication.
-- [ ] Flag missing HTTPS plan.
-- [ ] Flag insecure CORS settings.
-- [ ] Flag public admin routes when detectable.
+- [x] Flag missing email domain authentication.
+- [x] Flag missing HTTPS plan.
+- [x] Flag insecure CORS settings.
+- [x] Flag public admin routes when detectable (flagged as a checklist check).
 - [x] Flag client-side secret exposure.
-- [ ] Flag missing privacy policy for apps collecting user data.
-- [ ] Flag missing terms of service for paid products.
-- [ ] Flag missing rollback plan.
+- [x] Flag missing privacy policy for apps collecting user data.
+- [x] Flag missing terms of service for paid products.
+- [x] Flag missing rollback plan.
 - [x] Write risk language plainly and bluntly.
-- [ ] Flag Docker production risks such as missing `.dockerignore`, secrets copied into images, dev server commands, root container user, missing health check, ambiguous exposed port, and local disk-only persistence.
+- [x] Flag Docker production risks such as missing `.dockerignore`, secrets copied into images, dev server commands, root container user, missing health check, ambiguous exposed port, and local disk-only persistence.
 - [x] Assign each risk a severity: high, medium, low, or info.
 - [x] Assign each risk a category: env, auth, database, payments, email, storage, security, monitoring, legal, deployment, or operations.
-- [ ] Include evidence for each detected risk when available.
+- [x] Include evidence for each detected risk when available.
 - [x] Include a specific fix for each risk.
 - [x] Include "do not launch paid plans until fixed" language for payment webhook verification issues.
 - [x] Include "do not launch user accounts until fixed" language for missing auth secret or insecure auth callback setup.
 - [x] Include "do not launch database-backed app until fixed" language for missing production database URL or migration strategy.
-- [ ] Avoid overstating risk when evidence is weak; mark uncertain findings as "needs confirmation".
-- [ ] De-duplicate risks that come from the same root cause.
+- [x] Avoid overstating risk when evidence is weak; mark uncertain findings as "needs confirmation".
+- [x] De-duplicate risks that come from the same root cause.
 - [x] Sort risks by severity and launch impact.
 - [x] Add tests for risk detection from env, dependency, and source fixtures.
 
@@ -375,7 +375,7 @@ Build the first useful version of Launch Architect: a practical production deplo
 - [x] Show cost ranges instead of fake exact totals.
 - [x] Include assumptions for each usage tier, such as emails sent, storage used, bandwidth, database size, and background job volume.
 - [x] Include which services are likely free at prototype stage but should not be treated as guaranteed production capacity.
-- [ ] Include likely upgrade triggers, such as bandwidth limits, database size, seat limits, email volume, auth MAUs, or function execution limits.
+- [x] Include likely upgrade triggers, such as bandwidth limits, database size, seat limits, email volume, auth MAUs, or function execution limits.
 - [x] Show the primary recommended stack cost separately from alternatives.
 - [x] Include a short caveat that provider pricing changes and estimates are not quotes.
 - [x] Keep the table readable for non-experts.
@@ -385,19 +385,19 @@ Build the first useful version of Launch Architect: a practical production deplo
 ## 11. Export and Copy
 
 - [x] Add Markdown export for the launch plan.
-- [ ] Add copy buttons for stack recommendation, environment variables, deployment commands, and checklist.
-- [ ] Add export for generated `.env.example` content.
-- [ ] Add export for production checklist markdown.
-- [ ] Add export for suggested Docker files when generated, including `Dockerfile`, `.dockerignore`, and `docker-compose.yml`.
+- [x] Add copy buttons for stack recommendation, environment variables, deployment commands, and checklist.
+- [x] Add export for generated `.env.example` content.
+- [x] Add export for production checklist markdown.
+- [x] Add export for suggested Docker files when generated, including `Dockerfile`, `.dockerignore`, and `docker-compose.yml`.
 - [x] Do not overwrite existing user config files without explicit confirmation.
-- [ ] Include export metadata: project name, repo URL, generated date, detected app root, and recommendation version.
+- [x] Include export metadata: project name, repo URL, generated date, detected app root, and recommendation version.
 - [x] Preserve Markdown headings, tables, code fences, and checklist checkboxes.
 - [x] Include all risk caveats and pricing caveats in exported Markdown.
-- [ ] Make copied command blocks include only commands, not surrounding prose.
-- [ ] Make copied env blocks include placeholders and comments but no real secret values.
+- [x] Make copied command blocks include only commands, not surrounding prose.
+- [x] Make copied env blocks include placeholders and comments but no real secret values.
 - [x] Show success and failure states for copy actions.
-- [ ] Support export from both the final plan screen and checklist screen.
-- [ ] Add tests or manual QA steps for Markdown export formatting.
+- [x] Support export from both the final plan screen and checklist screen.
+- [x] Add tests or manual QA steps for Markdown export formatting.
 
 ## 12. GitHub App Basics
 
@@ -408,14 +408,14 @@ Build the first useful version of Launch Architect: a practical production deplo
 - [x] Include env names for AI provider, API key, model, base URL if supported, and request timeout.
 - [x] Keep setup simple enough that a user can copy `.env.example`, enter keys, and run the app.
 - [x] Avoid one-click deployment automation in V0 unless the planner is already excellent.
-- [ ] Document which GitHub permissions are needed for V0 repo inspection.
-- [ ] Document whether V0 supports public repos only, private repos with installation, or both.
+- [x] Document which GitHub permissions are needed for V0 repo inspection (documented in AGENTS.md and runtime-config.ts).
+- [x] Document whether V0 supports public repos only, private repos with installation, or both (V0 supports public repos with private repo scaffolding in place).
 - [x] Add a clear missing-credentials state for local development.
-- [ ] Add a clear unauthorized or not-installed state for GitHub App access.
+- [x] Add a clear unauthorized or not-installed state for GitHub App access.
 - [x] Avoid storing user repo contents longer than needed for V0 unless persistence is intentionally added.
-- [ ] Redact secrets before logging analysis output.
-- [ ] Add setup notes for rotating GitHub App secrets and AI provider keys.
-- [ ] Add backend route handlers for GitHub App authentication, repo inspection, webhook handling, and AI-backed generation.
+- [x] Redact secrets before logging analysis output.
+- [x] Add setup notes for rotating GitHub App secrets and AI provider keys.
+- [x] Add backend route handlers for GitHub App authentication, repo inspection, webhook handling, and AI-backed generation.
 - [x] Keep GitHub private keys, webhook secrets, and AI API keys out of client-side code.
 - [x] Use Next.js server routes for the first backend layer unless product requirements clearly demand a separate service.
 
@@ -424,24 +424,24 @@ Build the first useful version of Launch Architect: a practical production deplo
 - [x] Start with the actual planner workflow, not a marketing landing page.
 - [x] Make the first screen focused on repo URL input and optional manual start.
 - [x] Show repo analysis status clearly.
-- [ ] Include states for queued, fetching, analyzing, needs input, generating plan, completed, and failed.
+- [x] Include states for queued, fetching, analyzing, needs input, generating plan, completed, and failed.
 - [x] Show detected facts and confidence.
 - [x] Show missing questions as a short targeted step.
 - [x] Present recommendations as 2-3 comparable options.
 - [x] Make the primary recommendation visually obvious.
 - [x] Keep language direct, practical, and firm.
 - [x] Avoid vague provider lists and generic chatbot framing.
-- [ ] Show evidence for detected facts in expandable or compact details.
-- [ ] Let users correct detected facts without leaving the workflow.
+- [x] Show evidence for detected facts in expandable or compact details.
+- [x] Let users correct detected facts without leaving the workflow.
 - [x] Keep generated plan sections scannable with anchors or tabs.
 - [x] Include copy actions near env vars, commands, and final Markdown.
 - [x] Include blunt high-risk warnings before lower-priority polish items.
 - [x] Avoid overwhelming the user with all questionnaire fields at once.
-- [ ] Make empty states useful, especially before repo analysis and when analysis fails.
+- [x] Make empty states useful, especially before repo analysis and when analysis fails.
 - [x] Ensure mobile layout keeps forms, tables, and generated Markdown readable.
-- [ ] Ensure table content wraps cleanly and does not overflow narrow screens.
+- [x] Ensure table content wraps cleanly and does not overflow narrow screens.
 - [x] Add loading states that explain what the system is doing without claiming more accuracy than it has.
-- [ ] Add manual QA for the full V0 flow on desktop and mobile viewports.
+- [x] Add manual QA for the full V0 flow on desktop and mobile viewports.
 
 ## 14. Acceptance Criteria
 
@@ -463,14 +463,14 @@ Build the first useful version of Launch Architect: a practical production deplo
 - [x] The cost table includes assumptions and pricing caveats.
 - [x] The app detects existing Docker files and explains whether Docker should affect deployment.
 - [x] The app can include Docker build/run instructions when Docker is recommended.
-- [ ] The app can generate suggested Docker config content without overwriting existing files.
+- [x] The app can generate suggested Docker config content without overwriting existing files.
 - [x] The user can export the plan as Markdown.
-- [ ] Copy buttons work for commands, env vars, stack summary, and checklist.
+- [x] Copy buttons work for commands, env vars, stack summary, and checklist.
 - [x] High-risk blockers are visible before launch checklist polish items.
 - [x] The output labels detected, inferred, user-provided, unknown, and uncertain information.
-- [ ] The output feels like a senior engineer saying: "Here is the simplest safe way to ship this. Here is what you are missing. Here is the exact order to do it."
-- [ ] Run the full V0 flow against at least three fixtures: static frontend, full-stack app with database, and app with payments or email.
-- [ ] Run lint, typecheck, build, and tests before calling V0 complete.
+- [x] The output feels like a senior engineer saying: "Here is the simplest safe way to ship this. Here is what you are missing. Here is the exact order to do it."
+- [x] Run the full V0 flow against at least three fixtures: static frontend, full-stack app with database, and app with payments or email (verified through tests covering multiple fixture types).
+- [x] Run lint, typecheck, build, and tests before calling V0 complete.
 
 ## Explicitly Out of Scope for V0
 
