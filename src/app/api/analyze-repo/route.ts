@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { analyzeRepoFiles } from "@/features/repo-analysis/analyze-repo";
 import { fetchPublicGitHubRepoFiles } from "@/features/repo-analysis/github-fetch";
 
+export const runtime = "nodejs";
+export const maxDuration = 30;
+
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as { repoUrl?: string } | null;
   const repoUrl = body?.repoUrl;
