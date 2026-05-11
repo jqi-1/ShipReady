@@ -1,0 +1,254 @@
+{
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\next-env.d.ts": {
+    "mtime": 1778212743.704559,
+    "hash": "ba64ff7d54714a8f64db89b1003207d8"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\next.config.ts": {
+    "mtime": 1778212304.292791,
+    "hash": "daad32b4de0b92afe04301ebf0a6cc76"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\postcss.config.mjs": {
+    "mtime": 1778212305.5424042,
+    "hash": "d33d8e97ee8d52dab9801549a185bbe3"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\tailwind.config.ts": {
+    "mtime": 1778214614.9661503,
+    "hash": "eac0df7564b98192e7d0bbc0f8bd7e8d"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\vitest.config.mjs": {
+    "mtime": 1778212698.3488083,
+    "hash": "94957cee218518eeb5356553dae24735"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\app\\error.tsx": {
+    "mtime": 1778213423.5434558,
+    "hash": "7b46a1a5fee5f0faa3bf927fd3a53627"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\app\\layout.tsx": {
+    "mtime": 1778468478.2977765,
+    "hash": "0e37a2efd9f6bcfc707655dab133b8ae"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\app\\page.tsx": {
+    "mtime": 1778212823.9539804,
+    "hash": "f6b38ca1748d85b00aab34ce602eaf19"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\app\\analysis\\page.tsx": {
+    "mtime": 1778212378.4297514,
+    "hash": "d3872cec7123785ac6ef306755b5c1c3"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\app\\api\\analyze-repo\\route.ts": {
+    "mtime": 1778469098.5703197,
+    "hash": "300080a9301e23c62071d0399c73a3fb"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\app\\api\\generate-plan\\route.ts": {
+    "mtime": 1778463001.4497213,
+    "hash": "e8779e9ff76b5ab3bb979fe9908d489e"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\app\\api\\github-app\\route.ts": {
+    "mtime": 1778463001.4507215,
+    "hash": "da1dfb2db080dccaf7dfc915f799f181"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\app\\export\\page.tsx": {
+    "mtime": 1778212389.5154097,
+    "hash": "7e88d1f7335e420ab29a8da4312d01e2"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\app\\intake\\page.tsx": {
+    "mtime": 1778212374.690176,
+    "hash": "08d6709ac061caf51644d9fabc6b91f5"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\app\\launch-plan\\page.tsx": {
+    "mtime": 1778212385.8429801,
+    "hash": "6cd124f56424d6cc938f08ef536ba13a"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\app\\recommendations\\page.tsx": {
+    "mtime": 1778212382.1681292,
+    "hash": "b30fcee31cb01c3a6e3c8e5537352c43"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\components\\planner-workflow.tsx": {
+    "mtime": 1778468478.2987936,
+    "hash": "aba612bb44b9dfd28bdfb18c7cf31a3d"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\components\\route-placeholder.tsx": {
+    "mtime": 1778449153.8724217,
+    "hash": "960ca84b7a9f6024ef8da109f76e53c8"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\components\\ui\\alert.tsx": {
+    "mtime": 1778449151.4537303,
+    "hash": "4e843f92a3138eeb621000a5529ddc18"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\components\\ui\\badge.tsx": {
+    "mtime": 1778213423.6204884,
+    "hash": "eb297cc246b9141d2ecb3dd1c0dcd388"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\components\\ui\\button.tsx": {
+    "mtime": 1778212357.2027664,
+    "hash": "28c49099aa780eed8888374b05d216eb"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\components\\ui\\panel.tsx": {
+    "mtime": 1778213423.6266372,
+    "hash": "a11c2cb181f44d6e44d09b285807592a"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\components\\ui\\text-input.tsx": {
+    "mtime": 1778212360.828057,
+    "hash": "351105df52e02b091b440380473628f1"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\checklist\\generate-checklist.test.ts": {
+    "mtime": 1778458303.6983871,
+    "hash": "f2eac23c300434cd6419c2afc4dbe6ea"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\checklist\\generate-checklist.ts": {
+    "mtime": 1778468478.2987936,
+    "hash": "b7641223c18b70e4f8390ba60231c2d8"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\cost-estimates\\estimate-costs.test.ts": {
+    "mtime": 1778463001.4517217,
+    "hash": "0b28281de9b25429032456f8e30a8119"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\cost-estimates\\estimate-costs.ts": {
+    "mtime": 1778463001.4527214,
+    "hash": "d31e36165df7f4532fd21ee0cfc53352"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\export\\markdown.test.ts": {
+    "mtime": 1778468478.300849,
+    "hash": "56e9fb0f4eec44a80adb49c58fb5055d"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\export\\markdown.ts": {
+    "mtime": 1778468478.300849,
+    "hash": "d49a22fbd045971d442f816ea6b8b62e"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\intake\\validate-github-url.test.ts": {
+    "mtime": 1778451600.5311813,
+    "hash": "c1d5009b5cd25d6229deaf81a6d0adb5"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\intake\\validate-github-url.ts": {
+    "mtime": 1778449510.4336653,
+    "hash": "45fb7a0b5bbbbc5efb6008567cd8d24a"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\launch-plan\\generate-launch-plan.test.ts": {
+    "mtime": 1778458303.6993868,
+    "hash": "a582d3edaa0c14613f229f12a902447b"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\launch-plan\\generate-launch-plan.ts": {
+    "mtime": 1778463001.4547224,
+    "hash": "d3429a5d4b8c64f1911c0c47ba164462"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\planner\\build-fallback-state.test.ts": {
+    "mtime": 1778453593.3079526,
+    "hash": "2c5c6baa06c317eae62dff158da77230"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\planner\\build-fallback-state.ts": {
+    "mtime": 1778458303.7003865,
+    "hash": "802e35cca284e7015114342021d5b1cf"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\planner\\missing-information.test.ts": {
+    "mtime": 1778458303.7003865,
+    "hash": "6e9c5bea2e7a27a6e19fbc166cf7390d"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\planner\\missing-information.ts": {
+    "mtime": 1778458303.701387,
+    "hash": "f30722fed5c26bbce01b9d33a04e9239"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\recommendations\\recommend-stack.test.ts": {
+    "mtime": 1778458303.701387,
+    "hash": "ef48c8c71e117ebe9bc2ee36b23af212"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\recommendations\\recommend-stack.ts": {
+    "mtime": 1778458303.7023866,
+    "hash": "0671c71452ec996d7e212e2dfbe55442"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\repo-analysis\\analyze-repo.test.ts": {
+    "mtime": 1778468478.3022332,
+    "hash": "ed84cb5f284c6fe3c805bdbd0fff0a29"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\repo-analysis\\analyze-repo.ts": {
+    "mtime": 1778468478.3033407,
+    "hash": "280d452e7575673563dac1031ac3c8ab"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\repo-analysis\\docker-analysis.test.ts": {
+    "mtime": 1778458303.703387,
+    "hash": "3a538b02b66428552768d6d578e03b58"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\repo-analysis\\docker-analysis.ts": {
+    "mtime": 1778468478.3043466,
+    "hash": "08c5e1cc591988296c11645fe53e7bb0"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\repo-analysis\\env-detection.test.ts": {
+    "mtime": 1778463001.4547224,
+    "hash": "574f85af6856af487c7866d31ec84964"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\repo-analysis\\env-detection.ts": {
+    "mtime": 1778463001.4567218,
+    "hash": "bf06b196bda60e8b4fbc7207bfd8a1b8"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\repo-analysis\\github-fetch.ts": {
+    "mtime": 1778458303.7053862,
+    "hash": "e134c27f805a53277ab84680ee40847d"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\repo-analysis\\repo-file.ts": {
+    "mtime": 1778458303.7063863,
+    "hash": "36df0369bb791732d340e6c1a3a49ac3"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\repo-analysis\\service-detection.test.ts": {
+    "mtime": 1778458303.7063863,
+    "hash": "774c1413c81f45878d8d4ee5c57c8cf2"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\repo-analysis\\service-detection.ts": {
+    "mtime": 1778458303.7063863,
+    "hash": "daa55864eaca5792c0713e751d529f86"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\risk-review\\review-risks.test.ts": {
+    "mtime": 1778463001.457722,
+    "hash": "d9ae165b4de03019508f504a884a06e5"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\features\\risk-review\\review-risks.ts": {
+    "mtime": 1778463001.457722,
+    "hash": "c9743e1d64f36e1122253511157564f2"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\fixtures\\demo-project.ts": {
+    "mtime": 1778449196.7205343,
+    "hash": "3221a60ee3ad5495da828903ce15cc1c"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\fixtures\\repo-analysis-fixtures.ts": {
+    "mtime": 1778468478.3053455,
+    "hash": "eed33912cc25e755e21afa0ae301067a"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\lib\\commands.ts": {
+    "mtime": 1778463001.458723,
+    "hash": "41b54d579086c3cb1c6fa6aef51f31b0"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\lib\\draft-storage.ts": {
+    "mtime": 1778468478.3063464,
+    "hash": "d6992bd821cfd0be792401cdde09c277"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\lib\\runtime-config.ts": {
+    "mtime": 1778463001.459722,
+    "hash": "8e58010bd993b67bf80d7b359684ffd2"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\lib\\service-utils.ts": {
+    "mtime": 1778215371.5519094,
+    "hash": "9e694081d57221b78a8221d02d8103bc"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\src\\types\\planner.ts": {
+    "mtime": 1778463001.460721,
+    "hash": "dd546247294db31500cdfbbd5981afba"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\AGENTS.md": {
+    "mtime": 1778453903.0067382,
+    "hash": "de3977835da99b1685d6381c188d69d6"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\behavior.md": {
+    "mtime": 1778211111.0457282,
+    "hash": "b855f9c8f4a796aedfa27897c55db8cf"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\CHANGELOG.md": {
+    "mtime": 1778468478.2951758,
+    "hash": "a2d32523dc49f0c1c5ff10ed47f6edb1"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\README.md": {
+    "mtime": 1778468478.2951758,
+    "hash": "8bca316e58aab0fe6fb919d7493d492d"
+  },
+  "C:\\Users\\qifam\\OneDrive\\Desktop\\ShipReady\\todo.md": {
+    "mtime": 1778469623.914466,
+    "hash": "e6f68911ef33e7fdf8e66edaea6ea2f0"
+  }
+}
