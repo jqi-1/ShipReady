@@ -10,6 +10,7 @@ import {
   FileText,
   Github,
   RefreshCw,
+  RotateCcw,
   ShieldAlert,
   Terminal
 } from "lucide-react";
@@ -183,6 +184,7 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
   const [expandedEvidence, setExpandedEvidence] = useState<string | null>(null);
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowStageStatus>("idle");
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const storedDraft = loadPlannerDraft();
@@ -224,6 +226,10 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
   const launchBlockerCount = draft.risks.filter((risk) => risk.launchBlocker).length;
 
   async function analyzeRepo() {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     const parsed = parseGitHubRepoUrl(repoUrl);
 
     if (!parsed) {
@@ -248,7 +254,8 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ repoUrl: parsed.normalizedUrl })
+        body: JSON.stringify({ repoUrl: parsed.normalizedUrl }),
+        signal: controller.signal
       });
       const body = (await response.json()) as {
         ok: boolean;
@@ -256,6 +263,8 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
         analysis?: PlannerDraft["analysis"];
         truncated?: boolean;
       };
+
+      if (controller.signal.aborted) return;
 
       if (!response.ok || !body.ok || !body.analysis) {
         const analysis = buildIntakeOnlyAnalysis({
@@ -282,7 +291,11 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
       );
       setDraft(buildPlannerDraft(body.analysis, intake));
       setWorkflowStatus("completed");
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+
       const analysis = buildIntakeOnlyAnalysis({
         repoUrl: parsed.normalizedUrl,
         projectName: parsed.repo,
@@ -299,6 +312,8 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
   }
 
   function startManually() {
+    abortRef.current?.abort();
+    clearPlannerDraft();
     const manualDraft = buildManualPlannerState();
     setRepoUrl("");
     setRepoError("");
@@ -307,7 +322,21 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
     setDraft(manualDraft);
   }
 
+  function startOver() {
+    abortRef.current?.abort();
+    clearPlannerDraft();
+    const blankDraft = buildManualPlannerState();
+    setDraft(blankDraft);
+    setRepoUrl("");
+    setRepoError("");
+    setRepoStatus("");
+    setCopied("");
+    setWorkflowStatus("idle");
+    setExpandedEvidence(null);
+  }
+
   function resetDemo() {
+    abortRef.current?.abort();
     clearPlannerDraft();
     const fallbackDraft = buildFallbackPlannerState();
     setDraft(fallbackDraft);
@@ -315,6 +344,8 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
     setRepoError("");
     setRepoStatus("");
     setCopied("");
+    setWorkflowStatus("idle");
+    setExpandedEvidence(null);
   }
 
   function updateIntake(
@@ -386,10 +417,16 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                   })}
                 </nav>
               </div>
-              <Button variant="secondary" onClick={resetDemo}>
-                <RefreshCw size={16} aria-hidden="true" />
-                Load demo
-              </Button>
+              <div className="grid gap-2">
+                <Button variant="secondary" onClick={startOver}>
+                  <RotateCcw size={16} aria-hidden="true" />
+                  Start over
+                </Button>
+                <Button variant="secondary" onClick={resetDemo}>
+                  <RefreshCw size={16} aria-hidden="true" />
+                  Load demo
+                </Button>
+              </div>
             </div>
           </Panel>
         </aside>
