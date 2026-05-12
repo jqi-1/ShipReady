@@ -69,9 +69,12 @@ describe("analyzeRepoFiles", () => {
 
     expect(analysis.isMonorepo?.value).toBe(true);
     const paths = analysis.candidateAppRoots?.map((root) => root.path) ?? [];
-    expect(paths[0]).toBe(".");
+    expect(paths[0]).toBe("apps/web");
     expect(paths).toContain("apps/api");
-    expect(paths).toContain("apps/web");
+    expect(paths).toContain(".");
+    expect(analysis.candidateAppRoots?.[0].score).toBeGreaterThan(
+      analysis.candidateAppRoots?.find((root) => root.path === ".")?.score ?? 0
+    );
     expect(
       analysis.deploymentBlockers?.some((blocker) => blocker.id === "ambiguous-app-root")
     ).toBe(true);

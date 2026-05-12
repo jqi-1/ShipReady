@@ -197,7 +197,7 @@ function scoreAppRoot(
   files: RepoFile[],
   isWorkspaceMember: boolean
 ): number {
-  let score = 0;
+  let score = isWorkspaceMember ? 10 : 0;
 
   const rootNormalized = root === "." ? "" : root + "/";
 
@@ -222,8 +222,6 @@ function scoreAppRoot(
     if (FRAMEWORK_CONFIG_SCORES[fileName]) {
       score += FRAMEWORK_CONFIG_SCORES[fileName];
     }
-
-    if (isWorkspaceMember) score += 10;
   }
 
   return score;
@@ -231,23 +229,7 @@ function scoreAppRoot(
 
 function detectCandidateAppRoots(files: RepoFile[]): CandidateAppRoot[] {
   const candidates = new Map<string, CandidateAppRoot>();
-  const workspaceRoots = new Set<string>();
-
-  for (const file of files) {
-    if (basename(file.path) === "pnpm-workspace.yaml") {
-      workspaceRoots.add(dirname(file.path));
-    }
-    try {
-      if (basename(file.path) === "package.json") {
-        const pkg = JSON.parse(file.content);
-        const workspaces = pkg.workspaces;
-        if (workspaces) {
-          workspaceRoots.add(dirname(file.path));
-        }
-      }
-    } catch {
-    }
-  }
+  const workspaceMemberRoots = detectWorkspaceMemberRoots(files);
 
   for (const file of files) {
     const fileName = basename(file.path);
@@ -286,13 +268,64 @@ function detectCandidateAppRoots(files: RepoFile[]): CandidateAppRoot[] {
   return [...candidates.values()]
     .map((candidate) => ({
       ...candidate,
+      score: scoreAppRoot(
+        candidate.path,
+        files,
+        workspaceMemberRoots.has(candidate.path)
+      ),
       confidence: candidate.confidence as "high" | "medium" | "low"
     }))
-    .sort((left, right) => {
-      const leftScore = scoreAppRoot(left.path, files, workspaceRoots.has(left.path));
-      const rightScore = scoreAppRoot(right.path, files, workspaceRoots.has(right.path));
-      return rightScore - leftScore;
-    });
+    .sort((left, right) => (right.score ?? 0) - (left.score ?? 0));
+}
+
+function detectWorkspaceMemberRoots(files: RepoFile[]) {
+  const patterns = collectWorkspacePatterns(files);
+  const memberRoots = new Set<string>();
+
+  if (patterns.length === 0) return memberRoots;
+
+  for (const file of files) {
+    if (basename(file.path) !== "package.json") continue;
+    const root = dirname(file.path);
+    if (root === ".") continue;
+
+    if (patterns.some((pattern) => matchesWorkspacePattern(root, pattern))) {
+      memberRoots.add(root);
+    }
+  }
+
+  return memberRoots;
+}
+
+function collectWorkspacePatterns(files: RepoFile[]) {
+  const patterns: string[] = [];
+
+  for (const file of files) {
+    if (basename(file.path) === "package.json") {
+      try {
+        const pkg = JSON.parse(file.content) as PackageManifest;
+        const workspaces = Array.isArray(pkg.workspaces)
+          ? pkg.workspaces
+          : pkg.workspaces?.packages;
+        if (workspaces) patterns.push(...workspaces);
+      } catch {}
+    }
+
+    if (basename(file.path) === "pnpm-workspace.yaml") {
+      const matches = [...file.content.matchAll(/-\s+["']?([^"'\n]+)["']?/g)];
+      patterns.push(...matches.map((match) => match[1].trim()));
+    }
+  }
+
+  return patterns;
+}
+
+function matchesWorkspacePattern(root: string, pattern: string) {
+  const normalized = pattern.replaceAll("\\", "/").replace(/\/+$/, "");
+  if (!normalized.includes("*")) return root === normalized;
+
+  const [prefix, suffix = ""] = normalized.split("*");
+  return root.startsWith(prefix) && root.endsWith(suffix);
 }
 
 function selectAppRoot(candidates: CandidateAppRoot[]) {
@@ -906,5 +939,3 @@ function dirname(path: string) {
 function basename(path: string) {
   return path.split("/").at(-1) ?? path;
 }
-
-

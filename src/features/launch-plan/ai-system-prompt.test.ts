@@ -7,6 +7,7 @@ import {
   buildMarkdownFromAiSections,
   buildAiDraft
 } from "./ai-system-prompt";
+import { LAUNCH_PLAN_SECTION_TITLES } from "./sections";
 import type { LaunchPlanSection } from "@/types/planner";
 
 describe("buildAiSystemPrompt", () => {
@@ -85,14 +86,26 @@ describe("buildAiDraft", () => {
 describe("parseAiResponse", () => {
   it("parses valid JSON with sections", () => {
     const raw = JSON.stringify({
-      sections: [
-        { title: "Project Summary", body: "Summary content." },
-        { title: "Detected Stack", body: "Stack content." }
-      ]
+      sections: LAUNCH_PLAN_SECTION_TITLES.map((title) => ({
+        title,
+        body: `${title} content.`
+      }))
     });
     const result = parseAiResponse(raw);
     expect(result).not.toBeNull();
-    expect(result!.sections).toHaveLength(2);
+    expect(result!.sections).toHaveLength(19);
+  });
+
+  it("extracts JSON from a fenced response", () => {
+    const raw = `\`\`\`json\n${JSON.stringify({
+      sections: LAUNCH_PLAN_SECTION_TITLES.map((title) => ({
+        title,
+        body: `${title} content.`
+      }))
+    })}\n\`\`\``;
+    const result = parseAiResponse(raw);
+    expect(result).not.toBeNull();
+    expect(result!.sections[0].title).toBe("Project Summary");
   });
 
   it("returns null for invalid JSON", () => {
@@ -105,14 +118,29 @@ describe("parseAiResponse", () => {
     expect(result).toBeNull();
   });
 
-  it("returns null for empty sections array", () => {
+  it("returns null for incomplete sections array", () => {
     const result = parseAiResponse(JSON.stringify({ sections: [] }));
     expect(result).toBeNull();
   });
 
   it("returns null when sections lack title or body", () => {
     const result = parseAiResponse(
-      JSON.stringify({ sections: [{ foo: "bar" }] })
+      JSON.stringify({
+        sections: LAUNCH_PLAN_SECTION_TITLES.map((title, index) =>
+          index === 0 ? { title } : { title, body: `${title} content.` }
+        )
+      })
+    );
+    expect(result).toBeNull();
+  });
+
+  it("returns null when section order is wrong", () => {
+    const sections = LAUNCH_PLAN_SECTION_TITLES.map((title) => ({
+      title,
+      body: `${title} content.`
+    }));
+    const result = parseAiResponse(
+      JSON.stringify({ sections: [sections[1], sections[0], ...sections.slice(2)] })
     );
     expect(result).toBeNull();
   });

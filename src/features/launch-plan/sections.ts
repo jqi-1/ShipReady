@@ -1,0 +1,21 @@
+export const LAUNCH_PLAN_SECTION_TITLES = [
+  "Project Summary",
+  "Detected Stack",
+  "Missing Information",
+  "Recommended Stack",
+  "Alternative Stack Options",
+  "Required Accounts",
+  "Environment Variables",
+  "Deployment Steps",
+  "Database Setup",
+  "Auth Setup",
+  "Email Setup",
+  "Payments Setup",
+  "Domain and DNS Setup",
+  "Monitoring and Analytics",
+  "Cost Estimate",
+  "Production Risks",
+  "Launch Checklist",
+  "Rollback Plan",
+  "Next Actions"
+] as const;

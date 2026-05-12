@@ -1,26 +1,5 @@
 import type { RepoAnalysis, ProjectIntake, LaunchPlanSection } from "@/types/planner";
-
-const SECTION_ORDER = [
-  "Project Summary",
-  "Detected Stack",
-  "Missing Information",
-  "Recommended Stack",
-  "Alternative Stack Options",
-  "Required Accounts",
-  "Environment Variables",
-  "Deployment Steps",
-  "Database Setup",
-  "Auth Setup",
-  "Email Setup",
-  "Payments Setup",
-  "Domain and DNS Setup",
-  "Monitoring and Analytics",
-  "Cost Estimate",
-  "Production Risks",
-  "Launch Checklist",
-  "Rollback Plan",
-  "Next Actions"
-];
+import { LAUNCH_PLAN_SECTION_TITLES } from "@/features/launch-plan/sections";
 
 export function buildAiSystemPrompt(
   analysis: RepoAnalysis,
@@ -30,7 +9,7 @@ export function buildAiSystemPrompt(
 
 Generate a JSON object with a "sections" array containing exactly 19 objects, each with "title" and "body". The sections must appear in this exact order:
 
-${SECTION_ORDER.map((title, i) => `${i + 1}. ${title}`).join("\n")}
+${LAUNCH_PLAN_SECTION_TITLES.map((title, i) => `${i + 1}. ${title}`).join("\n")}
 
 Rules:
 - Use the repo analysis facts and user intake answers below to generate specific, actionable steps.
@@ -100,9 +79,7 @@ User Intake:
 - Audience: ${intake.audience}`;
 }
 
-export function buildAiUserMessage(
-  analysis: RepoAnalysis
-): string {
+export function buildAiUserMessage(analysis: RepoAnalysis): string {
   return `Generate a production deployment plan for ${analysis.projectName.value} using the repo analysis and intake details above. Return valid JSON with the "sections" array, "risks", "checklist", and "costEstimate" fields as specified.`;
 }
 
@@ -138,16 +115,22 @@ export interface AiPlanResponse {
 
 export function parseAiResponse(raw: string): AiPlanResponse | null {
   try {
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(extractJsonObject(raw));
     if (
       !parsed.sections ||
       !Array.isArray(parsed.sections) ||
-      parsed.sections.length === 0
+      parsed.sections.length !== LAUNCH_PLAN_SECTION_TITLES.length
     ) {
       return null;
     }
-    for (const section of parsed.sections) {
-      if (!section.title || !section.body) return null;
+    for (const [index, section] of parsed.sections.entries()) {
+      if (
+        section.title !== LAUNCH_PLAN_SECTION_TITLES[index] ||
+        typeof section.body !== "string" ||
+        section.body.trim().length === 0
+      ) {
+        return null;
+      }
     }
     return parsed as AiPlanResponse;
   } catch {
@@ -156,9 +139,7 @@ export function parseAiResponse(raw: string): AiPlanResponse | null {
 }
 
 export function buildMarkdownFromAiSections(sections: LaunchPlanSection[]): string {
-  return sections
-    .map((section) => `## ${section.title}\n\n${section.body}`)
-    .join("\n\n");
+  return sections.map((section) => `## ${section.title}\n\n${section.body}`).join("\n\n");
 }
 
 export function buildAiDraft(
@@ -169,4 +150,16 @@ export function buildAiDraft(
     system: buildAiSystemPrompt(analysis, intake),
     user: buildAiUserMessage(analysis)
   };
+}
+
+function extractJsonObject(raw: string) {
+  const trimmed = raw.trim();
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+
+  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
+    return trimmed;
+  }
+
+  return trimmed.slice(firstBrace, lastBrace + 1);
 }

@@ -176,6 +176,7 @@ export interface CandidateAppRoot {
   path: string;
   reason: string;
   confidence: Confidence;
+  score?: number;
 }
 
 export interface RepoFetchStatus {

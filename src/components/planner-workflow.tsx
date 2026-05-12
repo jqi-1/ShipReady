@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
+  ChevronDown,
+  ChevronRight,
   CheckCircle2,
   Clipboard,
   Cpu,
@@ -10,7 +12,6 @@ import {
   FileCode,
   FileText,
   Github,
-
   RefreshCw,
   RotateCcw,
   ShieldAlert,
@@ -186,7 +187,11 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
   const [copied, setCopied] = useState("");
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [expandedEvidence, setExpandedEvidence] = useState<string | null>(null);
+  const [expandedPlanSections, setExpandedPlanSections] = useState<Set<string>>(
+    () => new Set(["Project Summary"])
+  );
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowStageStatus>("idle");
+  const [planMessage, setPlanMessage] = useState("");
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -228,6 +233,7 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
     [draft.recommendations, draft.selectedRecommendationId]
   );
   const launchBlockerCount = draft.risks.filter((risk) => risk.launchBlocker).length;
+  const checklistProgress = useMemo(() => calculateChecklistProgress(draft), [draft]);
 
   async function analyzeRepo() {
     abortRef.current?.abort();
@@ -356,19 +362,23 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
     field: ProjectIntakeField,
     value: ProjectIntake[ProjectIntakeField]
   ) {
-    const nextIntake = {
-      ...draft.intake,
-      [field]: value,
-      source: "user_provided",
-      sources: {
-        ...draft.intake.sources,
-        [field]: "user_provided"
-      }
-    } as ProjectIntake;
+    setDraft((prev) => {
+      const nextIntake = {
+        ...prev.intake,
+        [field]: value,
+        source: "user_provided",
+        sources: {
+          ...prev.intake.sources,
+          [field]: "user_provided"
+        }
+      } as ProjectIntake;
 
-    setDraft(
-      buildPlannerDraft(draft.analysis, nextIntake, draft.selectedRecommendationId)
-    );
+      return preserveCheckedItems(
+        prev,
+        buildPlannerDraft(prev.analysis, nextIntake, prev.selectedRecommendationId)
+      );
+    });
+    setPlanMessage("");
   }
 
   async function copyText(label: string, value: string) {
@@ -376,6 +386,68 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
     setCopied(label);
     if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
     copyTimeoutRef.current = setTimeout(() => setCopied(""), 1600);
+  }
+
+  async function generatePlan() {
+    setPlanMessage("");
+    setWorkflowStatus("generating");
+
+    try {
+      const response = await fetch("/api/generate-plan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          analysis: draft.analysis,
+          intake: draft.intake,
+          selectedRecommendationId: draft.selectedRecommendationId
+        })
+      });
+      const body = (await response.json()) as {
+        ok: boolean;
+        message?: string;
+        launchPlan?: PlannerDraft["launchPlan"];
+        generationMode?: PlannerDraft["launchPlan"]["generationMode"];
+      };
+
+      if (!response.ok || !body.ok || !body.launchPlan) {
+        setWorkflowStatus("failed");
+        setPlanMessage(
+          body.message ??
+            "Launch plan generation failed. The current deterministic plan is still available."
+        );
+        return;
+      }
+
+      setDraft((prev) => ({
+        ...prev,
+        launchPlan: body.launchPlan!,
+        updatedAt: body.launchPlan!.generatedAt
+      }));
+      setWorkflowStatus("completed");
+      setPlanMessage(
+        body.message ??
+          `Generated ${body.generationMode ?? body.launchPlan.generationMode} plan.`
+      );
+    } catch {
+      setWorkflowStatus("failed");
+      setPlanMessage(
+        "Launch plan generation could not reach the API route. The current deterministic plan is still available."
+      );
+    }
+  }
+
+  function togglePlanSection(title: string) {
+    setExpandedPlanSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(title)) {
+        next.delete(title);
+      } else {
+        next.add(title);
+      }
+      return next;
+    });
   }
 
   return (
@@ -420,6 +492,25 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                     );
                   })}
                 </nav>
+                <div className="rounded-md border border-line bg-white p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-semibold text-ink">
+                      Checklist progress
+                    </span>
+                    <span className="text-xs font-semibold text-steel">
+                      {checklistProgress.percent}%
+                    </span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-fog">
+                    <div
+                      className="h-full rounded-full bg-signal transition-all"
+                      style={{ width: `${checklistProgress.percent}%` }}
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-steel">
+                    {checklistProgress.checked}/{checklistProgress.total} items done.
+                  </p>
+                </div>
               </div>
               <div className="grid gap-2">
                 <Button variant="secondary" onClick={startOver}>
@@ -478,19 +569,19 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                   any repositories. Install the app on your GitHub org or account to
                   inspect private repos. Public repo inspection still works.
                 </Alert>
-              ) : configStatus.githubAuthState === "missing_keys" && !configStatus.githubReady ? (
+              ) : configStatus.githubAuthState === "missing_keys" &&
+                !configStatus.githubReady ? (
                 <Alert tone="warn" role="alert">
                   GitHub App credentials are not fully configured. Public repos can be
-                  inspected; private repos need{" "}
-                  {configStatus.missingGitHub.join(", ")} set.
-                  The deterministic fallback remains available.
+                  inspected; private repos need {configStatus.missingGitHub.join(", ")}{" "}
+                  set. The deterministic fallback remains available.
                 </Alert>
               ) : null}
               {!configStatus.aiReady ? (
                 <Alert tone="warn" role="alert">
                   AI generation is not configured. Missing:{" "}
-                  {configStatus.missingAi.join(", ")}.
-                  The deterministic fallback will be used for all planning.
+                  {configStatus.missingAi.join(", ")}. The deterministic fallback will be
+                  used for all planning.
                 </Alert>
               ) : null}
             </section>
@@ -511,7 +602,9 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                   continue with manual planning.
                 </Alert>
               ) : null}
-              {draft.analysis.facts.length > 0 || draft.analysis.frontendFramework || draft.analysis.packageManager ? (
+              {draft.analysis.facts.length > 0 ||
+              draft.analysis.frontendFramework ||
+              draft.analysis.packageManager ? (
                 <>
                   <div className="grid gap-3 md:grid-cols-2">
                     <Fact
@@ -547,6 +640,33 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                       onToggle={setExpandedEvidence}
                     />
                   </div>
+                  {draft.analysis.candidateAppRoots &&
+                  draft.analysis.candidateAppRoots.length > 0 ? (
+                    <div className="rounded-md border border-line bg-[#fbfcfd] p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <h3 className="text-sm font-bold">App root candidates</h3>
+                        <span className="text-xs text-steel">Top 3 by score</span>
+                      </div>
+                      <div className="mt-3 grid gap-2">
+                        {draft.analysis.candidateAppRoots.slice(0, 3).map((root) => (
+                          <div
+                            key={root.path}
+                            className="flex flex-wrap items-center justify-between gap-2 rounded border border-line bg-white px-3 py-2 text-sm"
+                          >
+                            <span className="font-mono text-xs">{root.path}</span>
+                            <span className="flex items-center gap-2">
+                              {typeof root.score === "number" ? (
+                                <span className="text-xs text-steel">
+                                  score {root.score}
+                                </span>
+                              ) : null}
+                              <ConfidenceBadge confidence={root.confidence} />
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-0 border-collapse text-left text-sm">
                       <thead>
@@ -564,8 +684,12 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                               {envVar.name}
                             </td>
                             <td className="py-3 pr-2 md:pr-3">{envVar.exposure}</td>
-                            <td className="py-3 pr-2 md:pr-3">{envVar.required ? "Yes" : "No"}</td>
-                            <td className="py-3 pr-2 md:pr-3">{envVar.confidence}</td>
+                            <td className="py-3 pr-2 md:pr-3">
+                              {envVar.required ? "Yes" : "No"}
+                            </td>
+                            <td className="py-3 pr-2 md:pr-3">
+                              <ConfidenceBadge confidence={envVar.confidence} />
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -794,8 +918,11 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                     recommendation={recommendation}
                     selected={recommendation.id === selectedRecommendation?.id}
                     onSelect={() =>
-                      setDraft(
-                        buildPlannerDraft(draft.analysis, draft.intake, recommendation.id)
+                      setDraft((prev) =>
+                        preserveCheckedItems(
+                          prev,
+                          buildPlannerDraft(prev.analysis, prev.intake, recommendation.id)
+                        )
                       )
                     }
                   />
@@ -806,20 +933,45 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
 
           <Panel>
             <section id="launch-plan" className="grid gap-4">
-              <SectionHeader eyebrow="Launch Plan" title="Generated output" />
-              <div className="flex items-center gap-2">
-                {draft.launchPlan.generationMode === "ai" ? (
-                  <Badge tone="good">
-                    <Sparkles size={12} className="mr-1" aria-hidden="true" />
-                    AI-generated
-                  </Badge>
-                ) : (
-                  <Badge tone="neutral">
-                    <Cpu size={12} className="mr-1" aria-hidden="true" />
-                    Deterministic
-                  </Badge>
-                )}
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <SectionHeader eyebrow="Launch Plan" title="Generated output" />
+                <div className="flex flex-wrap items-center gap-2">
+                  {draft.launchPlan.generationMode === "ai" ? (
+                    <Badge tone="good">
+                      <Sparkles size={12} className="mr-1" aria-hidden="true" />
+                      AI-generated
+                    </Badge>
+                  ) : (
+                    <Badge tone="neutral">
+                      <Cpu size={12} className="mr-1" aria-hidden="true" />
+                      Deterministic
+                    </Badge>
+                  )}
+                  <Button
+                    variant="secondary"
+                    onClick={generatePlan}
+                    disabled={workflowStatus === "generating"}
+                  >
+                    {workflowStatus === "generating" ? (
+                      <RefreshCw size={16} aria-hidden="true" />
+                    ) : configStatus.aiReady ? (
+                      <Sparkles size={16} aria-hidden="true" />
+                    ) : (
+                      <Cpu size={16} aria-hidden="true" />
+                    )}
+                    {workflowStatus === "generating"
+                      ? "Generating..."
+                      : configStatus.aiReady
+                        ? "Generate with AI"
+                        : "Refresh fallback"}
+                  </Button>
+                </div>
               </div>
+              {planMessage ? (
+                <Alert tone={workflowStatus === "failed" ? "warn" : "info"}>
+                  {planMessage}
+                </Alert>
+              ) : null}
               {launchBlockerCount > 0 ? (
                 <Alert tone="warn">
                   <span className="inline-flex items-center gap-2">
@@ -828,15 +980,41 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                   </span>
                 </Alert>
               ) : null}
-              {draft.launchPlan.markdown.length > 0 ? (
-                <div className="max-h-[520px] overflow-auto rounded-md border border-line bg-[#fbfcfd] p-4">
-                  <pre className="whitespace-pre-wrap text-sm leading-6 text-ink">
-                    {draft.launchPlan.markdown}
-                  </pre>
+              {draft.launchPlan.sections.length > 0 ? (
+                <div className="grid gap-2">
+                  {draft.launchPlan.sections.map((section) => {
+                    const expanded = expandedPlanSections.has(section.title);
+                    return (
+                      <div
+                        key={section.title}
+                        className="overflow-hidden rounded-md border border-line bg-[#fbfcfd]"
+                      >
+                        <button
+                          type="button"
+                          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-bold text-ink hover:bg-white"
+                          onClick={() => togglePlanSection(section.title)}
+                          aria-expanded={expanded}
+                        >
+                          <span>{section.title}</span>
+                          {expanded ? (
+                            <ChevronDown size={16} aria-hidden="true" />
+                          ) : (
+                            <ChevronRight size={16} aria-hidden="true" />
+                          )}
+                        </button>
+                        {expanded ? (
+                          <pre className="border-t border-line p-4 text-sm leading-6 text-ink whitespace-pre-wrap">
+                            {section.body}
+                          </pre>
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <Alert>
-                  No launch plan generated yet. Complete the intake and analysis steps above.
+                  No launch plan generated yet. Complete the intake and analysis steps
+                  above.
                 </Alert>
               )}
             </section>
@@ -845,6 +1023,11 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
           <Panel>
             <section id="checklist" className="grid gap-4">
               <SectionHeader eyebrow="Checklist" title="Production readiness" />
+              <Alert tone={checklistProgress.requiredRemaining > 0 ? "warn" : "info"}>
+                {checklistProgress.requiredRemaining > 0
+                  ? `${checklistProgress.requiredRemaining} required-before-launch checklist items remain.`
+                  : "All required-before-launch checklist items are checked."}
+              </Alert>
               {draft.checklist
                 .filter((section) => section.relevant)
                 .map((section) => {
@@ -888,9 +1071,7 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                                 onChange={() => {
                                   setDraft((prev) => {
                                     const ids = prev.checkedItemIds.includes(item.id)
-                                      ? prev.checkedItemIds.filter(
-                                          (id) => id !== item.id
-                                        )
+                                      ? prev.checkedItemIds.filter((id) => id !== item.id)
                                       : [...prev.checkedItemIds, item.id];
                                     return { ...prev, checkedItemIds: ids };
                                   });
@@ -947,10 +1128,7 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                 <Button
                   variant="secondary"
                   onClick={() =>
-                    copyText(
-                      "checklist",
-                      exportChecklistMarkdown(draft.checklist)
-                    )
+                    copyText("checklist", exportChecklistMarkdown(draft.checklist))
                   }
                 >
                   <FileText size={16} aria-hidden="true" />
@@ -990,9 +1168,7 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                   return dockerMd ? (
                     <Button
                       variant="secondary"
-                      onClick={() =>
-                        copyText("docker", dockerMd ?? "")
-                      }
+                      onClick={() => copyText("docker", dockerMd ?? "")}
                     >
                       <FileCode size={16} aria-hidden="true" />
                       Copy Docker config
@@ -1028,21 +1204,20 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                   return configs.length > 0 ? (
                     <div className="grid gap-3">
                       {configs.map((config) => (
-                        <div
+                        <details
                           key={config.fileName}
                           className="rounded-md border border-line bg-[#fbfcfd]"
                         >
-                          <div className="flex items-center justify-between border-b border-line px-3 py-2">
-                            <span className="text-sm font-medium text-ink">
-                              {config.fileName}
-                            </span>
+                          <summary className="cursor-pointer border-b border-line px-3 py-2 text-sm font-medium text-ink">
+                            {config.fileName}
+                          </summary>
+                          <div className="flex items-center justify-between gap-3 border-b border-line px-3 py-2">
+                            <span className="text-sm font-medium text-ink">Preview</span>
                             <div className="flex gap-2">
                               <button
                                 type="button"
                                 className="text-xs text-steel hover:text-ink"
-                                onClick={() =>
-                                  copyText(config.fileName, config.content)
-                                }
+                                onClick={() => copyText(config.fileName, config.content)}
                               >
                                 Copy
                               </button>
@@ -1060,7 +1235,7 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                           <pre className="max-h-40 overflow-auto p-3 text-xs leading-5 text-ink">
                             {config.content}
                           </pre>
-                        </div>
+                        </details>
                       ))}
                     </div>
                   ) : (
@@ -1085,6 +1260,12 @@ function SectionHeader({ eyebrow, title }: { eyebrow: string; title: string }) {
       <h2 className="mt-2 text-2xl font-bold">{title}</h2>
     </div>
   );
+}
+
+function ConfidenceBadge({ confidence }: { confidence: string }) {
+  const tone =
+    confidence === "high" ? "good" : confidence === "medium" ? "warn" : "danger";
+  return <Badge tone={tone}>{confidence}</Badge>;
 }
 
 function Fact({
@@ -1120,7 +1301,11 @@ function Fact({
               onClick={() => onToggle?.(isExpanded ? null : label)}
               aria-expanded={isExpanded}
             >
-              {isExpanded ? "Hide" : evidence!.length > 1 ? `${evidence!.length} sources` : "Source"}
+              {isExpanded
+                ? "Hide"
+                : evidence!.length > 1
+                  ? `${evidence!.length} sources`
+                  : "Source"}
             </button>
           ) : null}
         </div>
@@ -1319,7 +1504,8 @@ function stageStatusFor(
 ): "idle" | "active" | "done" {
   if (stage === "Intake") return "done";
 
-  const hasAnalysis = draft.analysis.envVars.length > 0 || draft.analysis.services.length > 0;
+  const hasAnalysis =
+    draft.analysis.envVars.length > 0 || draft.analysis.services.length > 0;
   const hasQuestions = draft.missingInformation.questions.length > 0;
   const hasRecommendations = draft.recommendations.length > 0;
   const hasPlan = draft.launchPlan.markdown.length > 0;
@@ -1389,4 +1575,33 @@ function normalizeDraft(draft: PlannerDraft) {
   }
 
   return result;
+}
+
+function calculateChecklistProgress(draft: PlannerDraft) {
+  const items = draft.checklist
+    .filter((section) => section.relevant)
+    .flatMap((section) => section.items);
+  const checked = new Set(draft.checkedItemIds);
+  const checkedCount = items.filter((item) => checked.has(item.id)).length;
+  const requiredRemaining = items.filter(
+    (item) => item.requiredBeforeLaunch && !checked.has(item.id)
+  ).length;
+
+  return {
+    total: items.length,
+    checked: checkedCount,
+    requiredRemaining,
+    percent: items.length > 0 ? Math.round((checkedCount / items.length) * 100) : 0
+  };
+}
+
+function preserveCheckedItems(prev: PlannerDraft, next: PlannerDraft) {
+  const nextItemIds = new Set(
+    next.checklist.flatMap((section) => section.items.map((item) => item.id))
+  );
+
+  return {
+    ...next,
+    checkedItemIds: prev.checkedItemIds.filter((id) => nextItemIds.has(id))
+  };
 }

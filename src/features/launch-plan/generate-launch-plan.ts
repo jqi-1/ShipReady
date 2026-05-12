@@ -1,5 +1,6 @@
 import { hasService, serviceName } from "@/lib/service-utils";
 import { installCommandFor, slug } from "@/lib/commands";
+import { LAUNCH_PLAN_SECTION_TITLES } from "@/features/launch-plan/sections";
 import type {
   ChecklistSection,
   CostEstimate,
@@ -9,28 +10,6 @@ import type {
   RepoAnalysis,
   Risk
 } from "@/types/planner";
-
-const SECTION_ORDER = [
-  "Project Summary",
-  "Detected Stack",
-  "Missing Information",
-  "Recommended Stack",
-  "Alternative Stack Options",
-  "Required Accounts",
-  "Environment Variables",
-  "Deployment Steps",
-  "Database Setup",
-  "Auth Setup",
-  "Email Setup",
-  "Payments Setup",
-  "Domain and DNS Setup",
-  "Monitoring and Analytics",
-  "Cost Estimate",
-  "Production Risks",
-  "Launch Checklist",
-  "Rollback Plan",
-  "Next Actions"
-];
 
 export function generateLaunchPlan(input: {
   analysis: RepoAnalysis;
@@ -43,7 +22,7 @@ export function generateLaunchPlan(input: {
   generatedAt?: string;
 }): LaunchPlan {
   const generatedAt = input.generatedAt ?? new Date().toISOString();
-  const sections = SECTION_ORDER.map((title) => ({
+  const sections = LAUNCH_PLAN_SECTION_TITLES.map((title) => ({
     title,
     body: renderSection(title, input)
   }));
