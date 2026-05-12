@@ -5,13 +5,16 @@ import type { ReactNode } from "react";
 import {
   CheckCircle2,
   Clipboard,
+  Cpu,
   Download,
   FileCode,
   FileText,
   Github,
+
   RefreshCw,
   RotateCcw,
   ShieldAlert,
+  Sparkles,
   Terminal
 } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
@@ -56,6 +59,7 @@ import {
   exportEnvExampleSuggestion,
   exportMetadataMarkdown
 } from "@/features/export/markdown";
+import { generateConfigs } from "@/features/config-generation";
 import { installCommandFor, slug } from "@/lib/commands";
 
 const stages = [
@@ -803,6 +807,19 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
           <Panel>
             <section id="launch-plan" className="grid gap-4">
               <SectionHeader eyebrow="Launch Plan" title="Generated output" />
+              <div className="flex items-center gap-2">
+                {draft.launchPlan.generationMode === "ai" ? (
+                  <Badge tone="good">
+                    <Sparkles size={12} className="mr-1" aria-hidden="true" />
+                    AI-generated
+                  </Badge>
+                ) : (
+                  <Badge tone="neutral">
+                    <Cpu size={12} className="mr-1" aria-hidden="true" />
+                    Deterministic
+                  </Badge>
+                )}
+              </div>
               {launchBlockerCount > 0 ? (
                 <Alert tone="warn">
                   <span className="inline-flex items-center gap-2">
@@ -811,11 +828,87 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                   </span>
                 </Alert>
               ) : null}
-              <div className="max-h-[520px] overflow-auto rounded-md border border-line bg-[#fbfcfd] p-4">
-                <pre className="whitespace-pre-wrap text-sm leading-6 text-ink">
-                  {draft.launchPlan.markdown}
-                </pre>
-              </div>
+              {draft.launchPlan.markdown.length > 0 ? (
+                <div className="max-h-[520px] overflow-auto rounded-md border border-line bg-[#fbfcfd] p-4">
+                  <pre className="whitespace-pre-wrap text-sm leading-6 text-ink">
+                    {draft.launchPlan.markdown}
+                  </pre>
+                </div>
+              ) : (
+                <Alert>
+                  No launch plan generated yet. Complete the intake and analysis steps above.
+                </Alert>
+              )}
+            </section>
+          </Panel>
+
+          <Panel>
+            <section id="checklist" className="grid gap-4">
+              <SectionHeader eyebrow="Checklist" title="Production readiness" />
+              {draft.checklist
+                .filter((section) => section.relevant)
+                .map((section) => {
+                  const total = section.items.length;
+                  const checked = section.items.filter((item) =>
+                    draft.checkedItemIds.includes(item.id)
+                  ).length;
+                  const progressPct = total > 0 ? Math.round((checked / total) * 100) : 0;
+                  return (
+                    <div key={section.title} className="grid gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-ink">
+                          {section.title}
+                        </span>
+                        <span className="text-xs text-steel">
+                          {checked}/{total} complete
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-fog">
+                        <div
+                          className="h-full rounded-full bg-signal transition-all"
+                          style={{ width: `${progressPct}%` }}
+                        />
+                      </div>
+                      <div className="grid gap-1">
+                        {section.items.map((item) => {
+                          const isChecked = draft.checkedItemIds.includes(item.id);
+                          return (
+                            <label
+                              key={item.id}
+                              className={`flex cursor-pointer items-start gap-2 rounded px-2 py-1 text-sm ${
+                                item.requiredBeforeLaunch
+                                  ? "font-medium text-ink"
+                                  : "text-steel"
+                              } ${isChecked ? "opacity-60 line-through" : ""}`}
+                            >
+                              <input
+                                type="checkbox"
+                                className="mt-0.5 h-4 w-4 rounded border-steel accent-signal"
+                                checked={isChecked}
+                                onChange={() => {
+                                  setDraft((prev) => {
+                                    const ids = prev.checkedItemIds.includes(item.id)
+                                      ? prev.checkedItemIds.filter(
+                                          (id) => id !== item.id
+                                        )
+                                      : [...prev.checkedItemIds, item.id];
+                                    return { ...prev, checkedItemIds: ids };
+                                  });
+                                }}
+                              />
+                              <span className="flex-1">{item.text}</span>
+                              {item.requiredBeforeLaunch && !isChecked ? (
+                                <span className="shrink-0 text-xs font-semibold text-danger">
+                                  Required
+                                </span>
+                              ) : null}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
             </section>
           </Panel>
 
@@ -927,6 +1020,56 @@ export function PlannerWorkflow({ configStatus }: PlannerWorkflowProps) {
                   </span>
                 </Alert>
               ) : null}
+
+              <div className="mt-6 grid gap-3">
+                <p className="text-sm font-semibold uppercase text-steel">Config Files</p>
+                {(() => {
+                  const configs = generateConfigs(draft.analysis);
+                  return configs.length > 0 ? (
+                    <div className="grid gap-3">
+                      {configs.map((config) => (
+                        <div
+                          key={config.fileName}
+                          className="rounded-md border border-line bg-[#fbfcfd]"
+                        >
+                          <div className="flex items-center justify-between border-b border-line px-3 py-2">
+                            <span className="text-sm font-medium text-ink">
+                              {config.fileName}
+                            </span>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                className="text-xs text-steel hover:text-ink"
+                                onClick={() =>
+                                  copyText(config.fileName, config.content)
+                                }
+                              >
+                                Copy
+                              </button>
+                              <button
+                                type="button"
+                                className="text-xs text-steel hover:text-ink"
+                                onClick={() =>
+                                  downloadText(config.content, config.fileName)
+                                }
+                              >
+                                Download
+                              </button>
+                            </div>
+                          </div>
+                          <pre className="max-h-40 overflow-auto p-3 text-xs leading-5 text-ink">
+                            {config.content}
+                          </pre>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-steel">
+                      No config files available for this project shape.
+                    </p>
+                  );
+                })()}
+              </div>
             </section>
           </Panel>
         </div>
@@ -1231,7 +1374,7 @@ function normalizeDraft(draft: PlannerDraft) {
     }
   };
 
-  return buildPlannerDraft(
+  const result = buildPlannerDraft(
     {
       ...fallback.analysis,
       ...draft.analysis
@@ -1240,4 +1383,10 @@ function normalizeDraft(draft: PlannerDraft) {
     draft.selectedRecommendationId,
     draft.updatedAt
   );
+
+  if (draft.checkedItemIds) {
+    result.checkedItemIds = draft.checkedItemIds;
+  }
+
+  return result;
 }

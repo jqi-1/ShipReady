@@ -1,0 +1,31 @@
+export function generateDockerignore(): string {
+  return [
+    "node_modules",
+    ".git",
+    ".gitignore",
+    ".env",
+    ".env.local",
+    ".env.*.local",
+    ".next",
+    "dist",
+    "build",
+    "*.log",
+    ".cache",
+    "test",
+    "coverage",
+    ".nyc_output",
+    "*.tsbuildinfo",
+    "next-env.d.ts",
+    ".turbo",
+    ".vercel",
+    "out",
+    ".DS_Store",
+    "*.pid",
+    "*.seed",
+    "*.pid.lock",
+    "npm-debug.log*",
+    "yarn-debug.log*",
+    "yarn-error.log*",
+    "pnpm-debug.log*"
+  ].join("\n");
+}

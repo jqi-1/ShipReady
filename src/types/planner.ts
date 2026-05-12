@@ -348,6 +348,7 @@ export interface LaunchPlan {
   generatedAt: string;
   sections: LaunchPlanSection[];
   markdown: string;
+  generationMode: "ai" | "deterministic";
 }
 
 export interface PlannerDraft {
@@ -360,5 +361,6 @@ export interface PlannerDraft {
   costs: CostEstimate;
   checklist: ChecklistSection[];
   launchPlan: LaunchPlan;
+  checkedItemIds: string[];
   updatedAt: string;
 }

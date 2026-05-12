@@ -168,6 +168,7 @@ export function buildPlannerDraft(
       ...launchPlan,
       markdown: exportLaunchPlanMarkdown(launchPlan)
     },
+    checkedItemIds: [],
     updatedAt: draftUpdatedAt
   };
 }

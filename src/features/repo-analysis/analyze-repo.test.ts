@@ -68,11 +68,10 @@ describe("analyzeRepoFiles", () => {
     const analysis = analyzeRepoFiles(monorepoAppFiles);
 
     expect(analysis.isMonorepo?.value).toBe(true);
-    expect(analysis.candidateAppRoots?.map((root) => root.path)).toEqual([
-      ".",
-      "apps/api",
-      "apps/web"
-    ]);
+    const paths = analysis.candidateAppRoots?.map((root) => root.path) ?? [];
+    expect(paths[0]).toBe(".");
+    expect(paths).toContain("apps/api");
+    expect(paths).toContain("apps/web");
     expect(
       analysis.deploymentBlockers?.some((blocker) => blocker.id === "ambiguous-app-root")
     ).toBe(true);

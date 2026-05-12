@@ -65,7 +65,7 @@ export function analyzeRepoFiles(
   const files = normalizeFiles(inputFiles);
   const fileMap = new Map(files.map((file) => [file.path, file]));
   const candidateAppRoots = detectCandidateAppRoots(files);
-  const selectedRoot = selectAppRoot(candidateAppRoots, files);
+  const selectedRoot = selectAppRoot(candidateAppRoots);
   const packageJson = readPackageJson(fileMap, joinPath(selectedRoot, "package.json"));
   const dependencies = collectPackageDependencies(packageJson);
   const projectName = detectProjectName(packageJson, options.repoUrl);
@@ -177,8 +177,77 @@ function normalizePath(path: string) {
   return path.replaceAll("\\", "/").replace(/^\/+/, "").replace(/\/+$/, "");
 }
 
+const FRAMEWORK_CONFIG_SCORES: Record<string, number> = {
+  "next.config.js": 30,
+  "next.config.mjs": 30,
+  "next.config.ts": 30,
+  "vite.config.js": 25,
+  "vite.config.mjs": 25,
+  "vite.config.ts": 25,
+  "astro.config.mjs": 25,
+  "svelte.config.js": 25,
+  "nuxt.config.ts": 25,
+  "remix.config.js": 25,
+  "gatsby-config.js": 25,
+  "angular.json": 20
+};
+
+function scoreAppRoot(
+  root: string,
+  files: RepoFile[],
+  isWorkspaceMember: boolean
+): number {
+  let score = 0;
+
+  const rootNormalized = root === "." ? "" : root + "/";
+
+  for (const file of files) {
+    if (!file.path.startsWith(rootNormalized)) continue;
+
+    const fileName = basename(file.path);
+    const relPath = root === "." ? file.path : file.path.slice(rootNormalized.length);
+
+    if (relPath === "package.json") {
+      try {
+        const pkg = JSON.parse(file.content);
+        if (pkg.scripts?.build) score += 15;
+        if (pkg.scripts?.start) score += 15;
+        if (pkg.scripts?.dev) score += 5;
+        if (pkg.name) score += 5;
+      } catch {
+        score += 5;
+      }
+    }
+
+    if (FRAMEWORK_CONFIG_SCORES[fileName]) {
+      score += FRAMEWORK_CONFIG_SCORES[fileName];
+    }
+
+    if (isWorkspaceMember) score += 10;
+  }
+
+  return score;
+}
+
 function detectCandidateAppRoots(files: RepoFile[]): CandidateAppRoot[] {
   const candidates = new Map<string, CandidateAppRoot>();
+  const workspaceRoots = new Set<string>();
+
+  for (const file of files) {
+    if (basename(file.path) === "pnpm-workspace.yaml") {
+      workspaceRoots.add(dirname(file.path));
+    }
+    try {
+      if (basename(file.path) === "package.json") {
+        const pkg = JSON.parse(file.content);
+        const workspaces = pkg.workspaces;
+        if (workspaces) {
+          workspaceRoots.add(dirname(file.path));
+        }
+      }
+    } catch {
+    }
+  }
 
   for (const file of files) {
     const fileName = basename(file.path);
@@ -214,19 +283,20 @@ function detectCandidateAppRoots(files: RepoFile[]): CandidateAppRoot[] {
     });
   }
 
-  return [...candidates.values()].sort((left, right) => {
-    if (left.path === ".") return -1;
-    if (right.path === ".") return 1;
-    return left.path.localeCompare(right.path);
-  });
+  return [...candidates.values()]
+    .map((candidate) => ({
+      ...candidate,
+      confidence: candidate.confidence as "high" | "medium" | "low"
+    }))
+    .sort((left, right) => {
+      const leftScore = scoreAppRoot(left.path, files, workspaceRoots.has(left.path));
+      const rightScore = scoreAppRoot(right.path, files, workspaceRoots.has(right.path));
+      return rightScore - leftScore;
+    });
 }
 
-function selectAppRoot(candidates: CandidateAppRoot[], files: RepoFile[]) {
-  const packageRoots = candidates.filter((candidate) =>
-    files.some((file) => file.path === joinPath(candidate.path, "package.json"))
-  );
-
-  return packageRoots[0]?.path ?? candidates[0]?.path ?? ".";
+function selectAppRoot(candidates: CandidateAppRoot[]) {
+  return candidates[0]?.path ?? ".";
 }
 
 function readPackageJson(fileMap: Map<string, RepoFile>, path: string) {

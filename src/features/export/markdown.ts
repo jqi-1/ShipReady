@@ -90,6 +90,7 @@ export function exportMetadataMarkdown(plan: LaunchPlan, repoUrl?: string) {
     `project: ${plan.projectName}`,
     repoUrl ? `repo: ${repoUrl}` : null,
     `generated: ${plan.generatedAt}`,
+    `mode: ${plan.generationMode}`,
     "version: shipready-v0",
     "---"
   ]

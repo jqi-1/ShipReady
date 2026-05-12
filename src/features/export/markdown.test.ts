@@ -14,7 +14,8 @@ describe("exportLaunchPlanMarkdown", () => {
       projectName: "TestApp",
       generatedAt: "2025-01-01T00:00:00.000Z",
       sections: [],
-      markdown: "## Project Summary\n\nTest content."
+      markdown: "## Project Summary\n\nTest content.",
+      generationMode: "deterministic"
     };
 
     const result = exportLaunchPlanMarkdown(plan);
@@ -103,13 +104,15 @@ describe("exportMetadataMarkdown", () => {
       projectName: "MyApp",
       generatedAt: "2025-06-01T12:00:00.000Z",
       sections: [],
-      markdown: ""
+      markdown: "",
+      generationMode: "deterministic"
     };
 
     const result = exportMetadataMarkdown(plan, "https://github.com/org/repo");
 
     expect(result).toContain("project: MyApp");
     expect(result).toContain("repo: https://github.com/org/repo");
+    expect(result).toContain("mode: deterministic");
     expect(result).toContain("version: shipready-v0");
   });
 });

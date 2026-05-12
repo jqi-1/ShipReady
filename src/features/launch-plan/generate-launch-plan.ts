@@ -55,7 +55,8 @@ export function generateLaunchPlan(input: {
     projectName: input.analysis.projectName.value,
     generatedAt,
     sections,
-    markdown
+    markdown,
+    generationMode: "deterministic"
   };
 }
 
